@@ -30,14 +30,13 @@ continuo_imprimendo:
 
     loop imprimir_tablero
 
- 
-    mov rdi,textoTurnoJuego
+    mov     rdi,textoTurnoJuego
     sub     rsp,8
     call    printf
     add     rsp,8
 
-    ret
-
+    jmp proceso_logica
+ 
 hay_salto: 
     mov rdi,formatoTableroSalto
     jmp continuo_imprimendo
@@ -61,6 +60,8 @@ section .data
     largo_linea   db 7
     unidad   db 1
 
+    formatoTurno      db  ' %c ',0 
+
 section .bss
     aux         resq 1 
 
@@ -75,19 +76,26 @@ menu:
     call    print_menu  ; Imprime el menu y procesa el input
     add     rsp,8
  
-    cmp     al, 1       ; Salta al codigo del juego
+    cmp     ah, 1       ; Salta al codigo del juego
     je      game
 
     ; Hay que agregar el jmp a la carga de partida y para personalizar
 
-    cmp     al, 4       ; Termina la ejecucion
-    je      game
+    cmp     ah, 4       ; Termina la ejecucion
+    je      exit
 
     jmp menu
 
 game:
     imprimir_tablero
     ; procesar logica juego
+proceso_logica:
+
+    mov rdi, formatoTurno
+    sub     rsp,8
+    call    scanf   
+    add     rsp,8
+
     jmp game
 
 exit:
