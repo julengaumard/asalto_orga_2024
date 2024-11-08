@@ -1,6 +1,12 @@
 global main
 extern printf 
 extern scanf
+
+%macro call_function 1
+sub     rsp,8
+call    %1
+add     rsp,8
+%endmacro
  
 
 section .data
@@ -12,11 +18,14 @@ section .data
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
  
-    textoTurnoJuego db  10,'Turno jugador %c:',10,0
+    textoTurnoJuego db  10,'Turno jugador [%c]',10,'Ingrese ficha a mover: ',
 
-    formatoTurno      db  ' %c ',0 
+    turnoActual       db  'O',0
+    formatoTurno      db  '%d',0 
+       
 
 section .bss 
+    posicion_a_mover    resb    1
 
 section .text
     extern print_menu 
@@ -26,9 +35,7 @@ main:
 
 menu:
     
-    sub     rsp,8
-    call    print_menu  ; Imprime el menu y procesa el input
-    add     rsp,8
+    call_function print_menu ; Imprime el menu y procesa el input
  
     cmp     ah, 1       ; Salta al codigo del juego
     je      game
@@ -42,23 +49,26 @@ menu:
 
 game:
     lea rdi, [board]
-    sub     rsp,8
-    call    print_tablero_new   
-    add     rsp,8
+    call_function    print_tablero_new   ; Imprime el tablero 
 
     mov rdi, textoTurnoJuego 
-    ; Hay q pasarle el char del turno que corresponda
-    sub     rsp,8
-    call    printf   
-    add     rsp,8
+    mov rsi, [turnoActual]
+    call_function    printf   ; Imprime texto para solicitar movimiento
 
-; proceso_logica:
-;     ; Aca esta la logica del juego
-;     mov rdi, formatoTurno
-;     sub     rsp,8
-;     call    scanf   
-;     add     rsp,8
-;     jmp game
+
+    ; mov rsi, 0
+    ; mov rdi, formatoTurno
+    ; lea rsi, [posicion_a_mover]
+    ; call_function    scanf
+
+    ; mov rdi, textoTurnoJuego 
+    ; mov rsi, [posicion_a_mover]
+    ; call_function    printf
+
+
+
+
+    jmp game
 
 exit:
     ret

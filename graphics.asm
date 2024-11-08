@@ -31,20 +31,21 @@ section .data
     inputFormat      db      "%i",0 
     emsg             db      10,'ERROR: Ingrese un numero valido.',10,10,0 
 
-    posicion_tablero    db 88, 88,  3,  4,  5, 88, 88
-                        db 88, 88, 10, 11, 12, 88, 88
+    posicion_tablero    db 66, 66,  3,  4,  5, 66, 66
+                        db 66, 66, 10, 11, 12, 66, 66
                         db 15, 16, 17, 18, 19, 20, 21
                         db 22, 23, 24, 25, 26, 27, 28
                         db 29, 30, 31, 32, 33, 34, 35
-                        db 88, 88, 38, 39, 40, 88, 88
-                        db 88, 88, 45, 46, 47, 88, 88
+                        db 66, 66, 38, 39, 40, 66, 66
+                        db 66, 66, 45, 46, 47, 66, 66
 
     formato_tablero         db  ' %c ',0 
     formato_tablero_salto   db  ' %c ',10,0
     titulo_tablero          db  10,'Tablero:                                Posiciones del tablero:',10,0
+
+    largo_fila              db  7
     desplaza_tablero        dq  0
-    contador_numeros        dq  0
-    largo_linea2            db  7
+    contador_numeros        dq  0    
     contador_fila           db  0
 
     separador_nums          db  '                  ',0 
@@ -89,7 +90,8 @@ error:
 
 
 print_tablero_new:
-
+ 
+    mov word[desplaza_tablero], 0  
     mov     [puntero_tablero], rdi 
 
     mov     rdi,titulo_tablero
@@ -110,7 +112,7 @@ continue_print:
     add     rsp,8 
 
     mov ax, word[desplaza_tablero] 
-    div byte[largo_linea2]
+    div byte[largo_fila]
     cmp ah, 6
     je imprimir_fila_numeros
 
@@ -119,17 +121,21 @@ continuar_tablero:
     cmp qword[desplaza_tablero], 49
     jne continue_print
 
+    sub word[contador_fila], 49
+
     ret
 
 
 imprimir_fila_numeros: 
 
-    mov     qword[contador_numeros], 0
+
     mov     rdi,separador_nums
     sub     rsp,8
     call    printf
     add     rsp,8 
 
+    
+    mov     qword[contador_numeros], 0
 
 resto_numeros:
 
@@ -145,7 +151,7 @@ resto_numeros:
 
     cmp rsi, 10
     jl  agregar_espacio_num
-    cmp rsi, 88
+    cmp rsi, 66
     je  imprimir_espacio_vacio
 
     mov     rdi,formato_nums
