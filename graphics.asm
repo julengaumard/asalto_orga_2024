@@ -50,7 +50,7 @@ section .data
 
     separador_nums          db  '                  ',0 
     formato_nums            db  ' %d ',0
-    formato_nums_espacio    db  ' %d  ',0
+    formato_nums_espacio    db  '  %d ',0
     formato_nums_no_num     db  '    ',0
     salto_linea             db  10,0
     
