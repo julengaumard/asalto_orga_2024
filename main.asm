@@ -12,7 +12,7 @@ section .data
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
  
-    textoTurnoJuego db  10,'Turno jugador %i:',10,0
+    textoTurnoJuego db  10,'Turno jugador %c:',10,0
 
     formatoTurno      db  ' %c ',0 
 
@@ -44,6 +44,12 @@ game:
     lea rdi, [board]
     sub     rsp,8
     call    print_tablero_new   
+    add     rsp,8
+
+    mov rdi, textoTurnoJuego 
+    ; Hay q pasarle el char del turno que corresponda
+    sub     rsp,8
+    call    printf   
     add     rsp,8
 
 ; proceso_logica:
