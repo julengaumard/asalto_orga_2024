@@ -2,6 +2,10 @@ global main
 extern printf 
 extern scanf
 
+extern print_menu 
+extern print_tablero_new
+extern save_game
+extern load_game
 %macro call_function 1
 sub     rsp,8
 call    %1
@@ -10,6 +14,9 @@ add     rsp,8
  
 
 section .data
+     global turnoActual
+     global board 
+
     board   db 32, 32, 88, 88, 88, 32, 32
             db 32, 32, 88, 88, 88, 32, 32
             db 88, 88, 88, 88, 88, 88, 88
@@ -18,9 +25,9 @@ section .data
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
  
-    textoTurnoJuego db  10,'Turno [%c]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover: ',0
+    textoTurnoJuego db  10,'Turno [%c]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
     posicion_invalida db  'La posicion no es valida, ingrese nuevamente: ',0
-
+    textoCargar db 'Deseas cargar la partida guardada? (1 para cargar, 0 para continuar): ', 0
     
     turnoActual       db  'X',0
     formatoTurno      db  '%d',0 
@@ -28,26 +35,30 @@ section .data
 
 section .bss 
     ficha_a_mover    resq    1
+    opcion_personalizar resb 1
 
 section .text
-    extern print_menu 
-    extern print_tablero_new
+    global main
 
 main:
 
 menu:
     
     call_function print_menu ; Imprime el menu y procesa el input
+    
+    
+    cmp ah, 1        ; Opción 1: Iniciar juego
+    je game
+
+    cmp ah, 3
+    je cargar_partida
+
  
-    cmp     ah, 1       ; Salta al codigo del juego
-    je      game
-
-    ; Hay que agregar el jmp a la carga de partida y para personalizar
-
-    cmp     ah, 4       ; Termina la ejecucion
-    je      exit
+    cmp ah, 4        ; Opción 4: Salir
+    je exit
 
     jmp menu
+
 
 game:
     lea rdi, [board]
@@ -64,6 +75,18 @@ ingrese_nuevamente:
     mov rdi, formatoTurno
     mov rsi, ficha_a_mover
     call_function    scanf
+
+    ; Verifica si la entrada es '0' para guardar la partida
+    mov al, [ficha_a_mover]
+    cmp al, 0        ; Compara si la entrada es 0
+    jl exit
+    je guardar_partida ; Si es 0, guarda la partida
+
+    ; Si no es '0', sigue con el flujo normal de juego
+
+
+    cmp qword[ficha_a_mover], 48 
+    jg posicion_no_valida
 
     ; Chequea si la posicion es externa al tablero
     cmp qword[ficha_a_mover], 48 
@@ -85,8 +108,24 @@ ingrese_nuevamente:
 
     jmp game
 
+guardar_partida:
+    ; Guardar el estado actual en un archivo
+    call save_game
+    jmp menu
+
+
+cargar_partida:
+    ; Preguntar si desea cargar la partida guardada
+    call load_game
+    jmp game
+
+
+
 exit:
-    ret
+    ; Código para salir del programa (terminar ejecución)
+    mov rax, 60             ; Syscall para salir (exit)
+    xor rdi, rdi            ; Código de salida 0
+    syscall
 
    
 posicion_no_valida:
