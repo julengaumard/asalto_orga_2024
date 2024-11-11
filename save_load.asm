@@ -3,53 +3,56 @@ extern turnoActual
 
 section .data
     archivoGuardado    db 'saved_game.bin', 0
-    mode_write_text    db 'w', 0         ; Modo de texto de escritura (asegúrate de solo usar 'w' si quieres truncar)
-    mode_write_bin     db 'wb', 0        ; Modo binario de escritura para fwrit
+    mode_write_flags   dq 0x241         ; O_WRONLY | O_CREAT | O_TRUNC
+    permisos           dq 0644         ; Permisos de archivo
+    
     error_cargar            db "Error al cargar"
     error_guardado          db "Error al guardar"
 section .bss
     fileDescriptor resq 1
     fileHandle resq 1
 
+
 section .text
-    extern printf, fopen, write, fclose
-    global save_game
+    extern printf, open, write, close
+    global save_game, load_game
+
 
 save_game:
     sub rsp, 8
 
-    ; Abre el archivo en modo binario de escritura
-    mov rdi, archivoGuardado
-    mov rsi, mode_write_bin
-    call fopen
+    ; Abre el archivo en modo de escritura, crea el archivo si no existe, y trunca si existe
+    mov rdi, archivoGuardado        ; Nombre del archivo
+    mov rsi, 0x241                  ; O_WRONLY | O_CREAT | O_TRUNC
+    mov rdx, 0644                   ; Permisos del archivo (rw-r--r--)
+    call open
 
-    test rax, rax             ; Verifica si fopen falló
-    jz save_game_error        ; Salta a error si fopen devuelve 0
+    test rax, rax                   ; Verifica si open falló
+    js save_game_error              ; Salta a error si open devuelve un valor negativo
 
     ; Guarda el descriptor de archivo en fileHandle
     mov [fileHandle], rax
 
-    
     ; Escribimos el turno actual (1 byte)
-    mov rdi, [fileDescriptor]         ; Descriptor de archivo
-    mov rsi, turnoActual              ; Turno actual
-    mov rdx, 1                        ; Tamaño: 1 byte
+    mov rdi, [fileHandle]           ; Descriptor de archivo
+    mov rsi, turnoActual            ; Turno actual
+    mov rdx, 1                      ; Tamaño: 1 byte
     call write
 
     ; Escribimos el tablero completo (49 bytes)
-    mov rdi, [fileDescriptor]
-    mov rsi, board                    ; Dirección del tablero
-    mov rdx, 49                       ; Tamaño del tablero
+    mov rdi, [fileHandle]           ; Descriptor de archivo
+    mov rsi, board                  ; Dirección del tablero
+    mov rdx, 49                     ; Tamaño del tablero
     call write
 
     ; Cierra el archivo
     mov rdi, [fileHandle]
-    call fclose
+    call close
+
     add rsp, 8
     ret
 
 save_game_error:
-    ; Imprime mensaje de error
     mov rdi, error_guardado
     call printf
     add rsp, 8
