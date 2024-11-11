@@ -103,10 +103,23 @@ ingrese_nuevamente:
     ; Hay que chequear si es una ficha que se puede mover
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
     ; Modificar la matris y evaluar si hay que eliminar un valor del enemigo
-    ; Cambiar variable de tunro
+      ; Cambiar variable de tunro
+    cmp byte [turnoActual], 'X'
+    je cambiar_a_soldado
+    cmp byte [turnoActual], 'O'
+    je cambiar_a_oficial
+    ret
 
+    
+cambiar_a_soldado:
+    mov byte [turnoActual], 'O'
+     jmp game
 
+cambiar_a_oficial:
+    mov byte [turnoActual], 'X' ; Cambiar turno a los soldados
     jmp game
+
+
 
 guardar_partida:
     ; Guardar el estado actual en un archivo
