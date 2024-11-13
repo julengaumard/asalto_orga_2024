@@ -6,6 +6,10 @@ extern print_menu
 extern print_tablero_new
 extern save_game
 extern load_game
+extern validar_movimiento_oficial
+extern verificar_salto_y_eliminar_oficial
+
+
 %macro call_function 1
 sub     rsp,8
 call    %1
@@ -16,6 +20,8 @@ add     rsp,8
 section .data
      global turnoActual
      global board 
+     global capturas
+     
 
     board   db 32, 32, 88, 88, 88, 32, 32
             db 32, 32, 88, 88, 88, 32, 32
@@ -25,20 +31,28 @@ section .data
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
  
-    textoTurnoJuego db  10,'Turno [%c]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
-    posicion_invalida db  'La posicion no es valida, ingrese nuevamente: ',0
+    textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
+    posicion_invalida db  'La posicion no es valida, ingrese nuevamente la ficha a mover : ',0
     textoCargar db 'Deseas cargar la partida guardada? (1 para cargar, 0 para continuar): ', 0
+    txtdestino db 'Ingrese la casilla de destino: ',0
+    movimiento_valido db 0
     
     turnoActual       db  'X',0
     formatoTurno      db  '%d',0 
-       
+    capturas          dq   0
 
 section .bss 
+    global ficha_a_mover
+    global posicion_destino
     ficha_a_mover    resq    1
-    opcion_personalizar resb 1
+    posicion_destino resq    1
+   
+
 
 section .text
     global main
+    global mov_valido
+    global invalido_movimiento
 
 main:
 
@@ -66,6 +80,7 @@ game:
 
     mov rdi, textoTurnoJuego 
     mov rsi, [turnoActual]
+    mov rdx, [capturas]
     call_function    printf   ; Imprime texto para solicitar movimiento
 
 
@@ -101,24 +116,83 @@ ingrese_nuevamente:
     jne posicion_no_valida
 
     ; Hay que chequear si es una ficha que se puede mover
+    
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
+     
+
     ; Modificar la matris y evaluar si hay que eliminar un valor del enemigo
-      ; Cambiar variable de tunro
+     ; Cambiar variable de tunro
     cmp byte [turnoActual], 'X'
-    je cambiar_a_soldado
+    je cambiar_soldado
     cmp byte [turnoActual], 'O'
-    je cambiar_a_oficial
+    je cambiar_oficial
     ret
 
     
-cambiar_a_soldado:
+cambiar_soldado:
+    
     mov byte [turnoActual], 'O'
      jmp game
 
-cambiar_a_oficial:
+cambiar_oficial:
+    call_function pedir_posicion
     mov byte [turnoActual], 'X' ; Cambiar turno a los soldados
     jmp game
 
+
+
+pedir_posicion:
+    mov rdi, txtdestino  ; Imprime texto para pedir destino
+    call_function    printf
+    mov rdi, formatoTurno
+    mov rsi, posicion_destino
+    call_function    scanf; Leer la posición de destino
+    call validar_movimiento_oficial
+
+    ret
+
+mover:
+    mov r9, [posicion_destino]   ; Cargar la posición de destino
+    sub r9, 1                    ; Ajustar a índice 0
+    lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
+    mov al, byte [r8]            ; Cargar el valor en la posición de destino
+
+    cmp al, 95                   ; Comprobar si la posición contiene '95' (vacía)
+    jne posicion_no_valida       ; Si no está vacía, saltar a error o mensaje de posición no válida
+
+    mov r9, [ficha_a_mover]      ; Cargar la ficha a mover ('X' o 'O')
+    sub r9, 1                    ; Ajustar la posición de la ficha (de 1 a 0-indexado)
+    lea r8, [board + r9]         ; Apuntamos a la posición de la ficha original
+    mov byte[r8], 95             ; Colocamos un espacio vacío (32) en la posición original
+
+    ; Ahora colocamos la ficha en la nueva posición
+    mov r9, [posicion_destino]   ; Cargar la posición de destino
+    sub r9, 1   
+    lea r8, [board + r9]         ; Apuntamos nuevamente al tablero, ya que actualizamos r8
+    mov al, byte [turnoActual]     ; Cargar la ficha a mover (X o O) en AL
+    mov byte [r8], al            ; Colocar el valor de AL en la nueva posición
+ret
+
+
+
+
+
+
+mov_valido:
+    ; Si el movimiento es válido, puedes continuar llamando a la función `mover`
+    call_function mover
+    ret
+
+
+fuera_de_tablero:
+    ret
+
+invalido_movimiento:
+    jmp ingrese_nuevamente
+    
+valido_movimiento:
+    call_function pedir_posicion
+    ret
 
 
 guardar_partida:
