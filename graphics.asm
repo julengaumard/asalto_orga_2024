@@ -1,5 +1,6 @@
 extern printf 
 extern scanf 
+extern getchar
 
 %macro printCadena 1
 mov rdi,%1
@@ -73,7 +74,7 @@ print_menu:
     call    scanf   
     add     rsp,8
     cmp     rax,1
-    jl      error
+    jne     error
     cmp     dword[opcion],4
     jg      error
     cmp     dword[opcion],1
@@ -83,9 +84,19 @@ print_menu:
     ret
  
 error: 
-    mov     al, 0
-    printCadena emsg
-    ret
+        mov     al, 0
+        printCadena emsg
+        call    clear_input_buffer
+        jmp     print_menu
+
+clear_input_buffer:
+        sub     rsp, 8
+clear_loop:
+        call    getchar
+        cmp     al, 10
+        jne     clear_loop
+        add     rsp, 8
+        ret
 
 
 
