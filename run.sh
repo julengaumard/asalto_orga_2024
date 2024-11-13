@@ -11,11 +11,13 @@ checkError () {
 }
 
 # Script 
+nasm -f elf64 -g -F dwarf -o save_load.o save_load.asm
+nasm -f elf64 -g -F dwarf -o logic.o logic.asm
 nasm -f elf64 -g -F dwarf -o graphics.o graphics.asm
 nasm -f elf64 -g -F dwarf -l main.lst -o $FILENAME.o $FILENAME.asm
 checkError $FILENAME.o "NASM"
 
-gcc $FILENAME.o graphics.o -o $OUTPUT -no-pie
+gcc $FILENAME.o graphics.o save_load.o logic.o -o $OUTPUT -no-pie
 checkError $OUTPUT "GCC"
  
 if [[ $FLAGS =~ "-d" ]] ; then
