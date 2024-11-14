@@ -59,7 +59,7 @@ loop_verificar_mov_oficial:
     je captura_posible
 
 continuar_verificacion_mov_oficial:
-    cmp [movimiento_valido], 1                      ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
+    cmp byte[movimiento_valido], 1                      ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
     je finalizar_verificacion_mov_oficial
 
     inc r11                                         ; Mueve el puntero del vector_desplazamiento a la siguietne posición
@@ -74,8 +74,8 @@ finalizar_verificacion_mov_oficial:
     ret
 
 esta_borde_lateral_tablero:
-    mov ax, r10                                     ; Copia la posicion del oficial a AX
-    div 7                                           
+    mov ax, r10w                                     ; Copia la posicion del oficial a AX
+    idiv byte[7]                                           
     cmp ah, 0                                       ; Si el resto es 0, se encuentra en el borde izquierdo del tablero
     je verificar_desplazamiento_izquierda
 
@@ -84,7 +84,7 @@ esta_borde_lateral_tablero:
 
     ret
 
-verificar_desplazamiento_derecha
+verificar_desplazamiento_derecha:
     cmp r11, -6                                     ; Diagonal superior derecha
     je continuar_verificacion_mov_oficial
     cmp r11, 1                                      ; Posición del medio derecha
@@ -94,7 +94,7 @@ verificar_desplazamiento_derecha
 
     ret
 
-verificar_desplazamiento_izquierda
+verificar_desplazamiento_izquierda:
     cmp r11, -8                                     ; Diagonal superior izquierda
     je continuar_verificacion_mov_oficial
     cmp r11, -1                                     ; Posición del medio izquierda
