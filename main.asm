@@ -1,4 +1,5 @@
 global main
+global menu
 extern printf 
 extern scanf
 
@@ -207,18 +208,21 @@ valido_movimiento:
     ret
 
 
+cargar_partida:
+    ; Preguntar si desea cargar la partida guardada
+    call_function load_game
+    jmp game
+
 guardar_partida:
     ; Guardar el estado actual en un archivo
     call save_game
     jmp menu
 
-
-cargar_partida:
-    ; Preguntar si desea cargar la partida guardada
-    call load_game
-    jmp game
-
-
+salir:
+    ; Salir del programa
+    mov rax, 60             ; Syscall para salir (exit)
+    xor rdi, rdi            ; Código de salida 0
+    syscall
 
 exit:
     ; Código para salir del programa (terminar ejecución)
