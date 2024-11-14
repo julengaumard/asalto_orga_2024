@@ -1,4 +1,5 @@
 global main
+global menu
 extern printf 
 extern scanf
 
@@ -30,6 +31,14 @@ section .data
             db 88, 88, 95, 95, 95, 88, 88
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
+
+    board_inicial db 32, 32, 88, 88, 88, 32, 32
+                 db 32, 32, 88, 88, 88, 32, 32
+                 db 88, 88, 88, 88, 88, 88, 88
+                 db 88, 88, 88, 88, 88, 88, 88
+                 db 88, 88, 95, 95, 95, 88, 88
+                 db 32, 32, 95, 95, 79, 32, 32
+                 db 32, 32, 79, 95, 95, 32, 32
  
     textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
     posicion_invalida db  'La posicion no es valida, ingrese nuevamente la ficha a mover : ',0
@@ -53,6 +62,7 @@ section .text
     global main
     global mov_valido
     global invalido_movimiento
+    global reiniciar_juego
 
 main:
 
@@ -62,7 +72,7 @@ menu:
     
     
     cmp ah, 1        ; Opción 1: Iniciar juego
-    je game
+    je iniciar_juego
 
     cmp ah, 3
     je cargar_partida
@@ -73,6 +83,9 @@ menu:
 
     jmp menu
 
+iniciar_juego:
+    call_function reiniciar_juego
+    jmp game
 
 game:
     lea rdi, [board]
@@ -195,18 +208,21 @@ valido_movimiento:
     ret
 
 
+cargar_partida:
+    ; Preguntar si desea cargar la partida guardada
+    call_function load_game
+    jmp game
+
 guardar_partida:
     ; Guardar el estado actual en un archivo
     call save_game
     jmp menu
 
-
-cargar_partida:
-    ; Preguntar si desea cargar la partida guardada
-    call load_game
-    jmp game
-
-
+salir:
+    ; Salir del programa
+    mov rax, 60             ; Syscall para salir (exit)
+    xor rdi, rdi            ; Código de salida 0
+    syscall
 
 exit:
     ; Código para salir del programa (terminar ejecución)
@@ -231,4 +247,17 @@ posicion_no_valida:
 ; mov rdx, [r9]
 ; sub     rsp,8
 ; call    printf
-; add     rsp,8 
+; add     rsp,8
+
+reiniciar_juego:
+    ; Reiniciar el tablero
+    lea rsi, [board_inicial]
+    lea rdi, [board]
+    mov rcx, 49  ; Tamaño del tablero (7x7)
+    rep movsb
+
+    ; Reiniciar otras variables del juego
+    mov byte [turnoActual], 'X'
+    mov qword [capturas], 0
+
+    ret
