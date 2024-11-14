@@ -30,6 +30,14 @@ section .data
             db 88, 88, 95, 95, 95, 88, 88
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
+
+    board_inicial db 32, 32, 88, 88, 88, 32, 32
+                 db 32, 32, 88, 88, 88, 32, 32
+                 db 88, 88, 88, 88, 88, 88, 88
+                 db 88, 88, 88, 88, 88, 88, 88
+                 db 88, 88, 95, 95, 95, 88, 88
+                 db 32, 32, 95, 95, 79, 32, 32
+                 db 32, 32, 79, 95, 95, 32, 32
  
     textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
     posicion_invalida db  'La posicion no es valida, ingrese nuevamente la ficha a mover : ',0
@@ -53,6 +61,7 @@ section .text
     global main
     global mov_valido
     global invalido_movimiento
+    global reiniciar_juego
 
 main:
 
@@ -62,7 +71,7 @@ menu:
     
     
     cmp ah, 1        ; Opción 1: Iniciar juego
-    je game
+    je iniciar_juego
 
     cmp ah, 3
     je cargar_partida
@@ -73,6 +82,9 @@ menu:
 
     jmp menu
 
+iniciar_juego:
+    call_function reiniciar_juego
+    jmp game
 
 game:
     lea rdi, [board]
@@ -231,4 +243,17 @@ posicion_no_valida:
 ; mov rdx, [r9]
 ; sub     rsp,8
 ; call    printf
-; add     rsp,8 
+; add     rsp,8
+
+reiniciar_juego:
+    ; Reiniciar el tablero
+    lea rsi, [board_inicial]
+    lea rdi, [board]
+    mov rcx, 49  ; Tamaño del tablero (7x7)
+    rep movsb
+
+    ; Reiniciar otras variables del juego
+    mov byte [turnoActual], 'X'
+    mov qword [capturas], 0
+
+    ret
