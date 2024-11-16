@@ -1,22 +1,23 @@
 extern board
-extern turnoActual 
+extern turnoActual
+extern menu
 
 section .data
     archivoGuardado    db 'saved_game.bin', 0
     mode_write_flags   dq 0x241         ; O_WRONLY | O_CREAT | O_TRUNC
-    permisos           dq 0644         ; Permisos de archivo
+    permisos           dq 0644          ; Permisos de archivo
     
-    error_cargar            db "Error al cargar"
-    error_guardado          db "Error al guardar"
+    error_cargar       db "Error al cargar", 10, 0
+    error_guardado     db "Error al guardar", 10, 0
+    no_guardado        db "No hay partida guardada. Selecciona otra opción", 10, 0
+
 section .bss
     fileDescriptor resq 1
     fileHandle resq 1
 
-
 section .text
-    extern printf, open, write, close
+    extern printf, open, write, close, access
     global save_game, load_game
-
 
 save_game:
     sub rsp, 8
@@ -59,34 +60,41 @@ save_game_error:
     ret
 
 section .text
-    extern printf, open, read, close
+    extern printf, open, read, close, access
     global load_game
 
 load_game:
     sub rsp, 8
 
+    ; Verificar si el archivo existe
+    mov rdi, archivoGuardado
+    mov rsi, 0          ; F_OK (verifica existencia del archivo)
+    call access
+    test rax, rax
+    jnz no_saved_game   ; Si el archivo no existe, mostrar mensaje de error y regresar al menú
+
     ; Abrimos el archivo en modo de solo lectura
     mov rdi, archivoGuardado   ; Nombre del archivo
-    mov rsi, 0                        ; Modo de solo lectura
+    mov rsi, 0                 ; Modo de solo lectura
     call open
 
     ; Verifica si el archivo se abrió correctamente
     test rax, rax
-    js load_game_error                ; Salta a error si open devuelve un valor negativo
+    js load_game_error         ; Salta a error si open devuelve un valor negativo
 
     ; Guarda el descriptor de archivo en fileDescriptor
     mov [fileDescriptor], rax
 
     ; Cargamos el turno actual (1 byte)
-    mov rdi, [fileDescriptor]         ; Descriptor de archivo
-    mov rsi, turnoActual              ; Turno actual
-    mov rdx, 1                        ; Tamaño: 1 byte
+    mov rdi, [fileDescriptor]   ; Descriptor de archivo
+    mov rsi, turnoActual        ; Turno actual
+    mov rdx, 1                  ; Tamaño: 1 byte
     call read
 
     ; Cargamos el tablero completo (49 bytes)
     mov rdi, [fileDescriptor]
-    mov rsi, board                    ; Dirección del tablero
-    mov rdx, 49                       ; Tamaño del tablero
+    mov rsi, board              ; Dirección del tablero
+    mov rdx, 49                 ; Tamaño del tablero
     call read
 
     ; Cerramos el archivo
@@ -94,6 +102,12 @@ load_game:
     call close
     add rsp, 8
     ret
+
+no_saved_game:
+    mov rdi, no_guardado
+    call printf
+    add rsp, 8
+    jmp menu   ; Regresar al menú principal
 
 load_game_error:
     mov rdi, error_cargar
@@ -106,4 +120,4 @@ load_game_error:
     call close
 .done:
     add rsp, 8
-    ret
+    jmp menu   ; Regresar al menú principal
