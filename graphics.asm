@@ -40,38 +40,7 @@ section .data
                         db 66, 66, 38, 39, 40, 66, 66
                         db 66, 66, 45, 46, 47, 66, 66
 
-;Tableros para las rotaciones
-    tablero_normal db 32, 32, 88, 88, 88, 32, 32
-                   db 32, 32, 88, 88, 88, 32, 32
-                   db 88, 88, 88, 88, 88, 88, 88
-                   db 88, 88, 88, 88, 88, 88, 88
-                   db 88, 88, 95, 95, 95, 88, 88
-                   db 32, 32, 95, 95, 79, 32, 32
-                   db 32, 32, 79, 95, 95, 32, 32
 
-    tablero_rotado_90 db 32, 32, 32, 88, 88, 88, 32
-                      db 32, 32, 88, 88, 88, 32, 32
-                      db 88, 88, 88, 88, 88, 88, 88
-                      db 88, 88, 88, 88, 88, 88, 88
-                      db 88, 88, 95, 95, 95, 88, 88
-                      db 32, 32, 95, 95, 79, 32, 32
-                      db 32, 32, 79, 95, 95, 32, 32
-
-    tablero_rotado_180 db 32, 32, 79, 95, 95, 32, 32
-                       db 32, 32, 95, 95, 79, 32, 32
-                       db 88, 88, 95, 95, 95, 88, 88
-                       db 88, 88, 88, 88, 88, 88, 88
-                       db 88, 88, 88, 88, 88, 88, 88
-                       db 32, 32, 88, 88, 88, 32, 32
-                       db 32, 32, 88, 88, 88, 32, 32
-
-    tablero_rotado_270 db 32, 32, 95, 95, 79, 32, 32
-                       db 32, 32, 95, 95, 95, 88, 88
-                       db 88, 88, 88, 88, 88, 88, 88
-                       db 88, 88, 88, 88, 88, 88, 88
-                       db 88, 88, 88, 88, 88, 88, 88
-                       db 32, 32, 88, 88, 88, 32, 32
-                       db 32, 32, 88, 88, 88, 32, 32
 
     formato_tablero         db  ' %c ',0 
     formato_tablero_salto   db  ' %c ',10,0
@@ -88,7 +57,9 @@ section .data
     formato_nums_no_num     db  '    ',0
     salto_linea             db  10,0
 
-
+    ; Definir las orientaciones posibles
+    textoOrientacion db 'Ingrese la orientacion del tablero (0: Normal, 1: 90 grados, 2: 180 grados, 3: 270 grados): ', 0
+    orientacion db 0
  
 section .bss
     opcion resw 1
@@ -97,6 +68,7 @@ section .bss
 section .text
     global print_menu 
     global print_tablero_new
+    global seleccionar_orientacion
 
 print_menu:
     printCadena titulo
@@ -229,3 +201,20 @@ agregar_espacio_num:
 imprimir_espacio_vacio:
     mov     rdi,formato_nums_no_num
     jmp     imprimir_numero
+
+
+seleccionar_orientacion:
+    printCadena textoOrientacion
+    mov rdi, inputFormat
+    mov rsi, orientacion
+    sub     rsp,8
+    call    scanf
+    add     rsp,8
+    cmp     rax, 1
+    jne     error
+    cmp     byte[orientacion], 3
+    jg      error
+    cmp     byte[orientacion], 0
+    jl      error
+    mov ah, [orientacion]
+    ret

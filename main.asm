@@ -11,6 +11,7 @@ extern load_game
 extern verificar_mov_oficial 
 extern validar_movimiento_oficial
 extern verificar_salto_y_eliminar_oficial
+extern seleccionar_orientacion
 
 
 %macro call_function 1
@@ -41,6 +42,30 @@ section .data
                  db 88, 88, 95, 95, 95, 88, 88
                  db 32, 32, 95, 95, 79, 32, 32
                  db 32, 32, 79, 95, 95, 32, 32
+    ;Tableros para las rotaciones
+    tablero_rotado_90 db 32, 32, 88, 88, 88, 32, 32
+                      db 32, 32, 88, 88, 88, 32, 32
+                      db 88, 88, 88, 88, 95, 79, 95
+                      db 88, 88, 88, 88, 95, 95, 95
+                      db 88, 88, 88, 88, 95, 95, 79
+                      db 32, 32, 88, 88, 88, 32, 32
+                      db 32, 32, 88, 88, 88, 32, 32
+
+    tablero_rotado_180 db 32, 32, 79, 95, 95, 32, 32
+                       db 32, 32, 95, 95, 79, 32, 32
+                       db 88, 88, 95, 95, 95, 88, 88
+                       db 88, 88, 88, 88, 88, 88, 88
+                       db 88, 88, 88, 88, 88, 88, 88
+                       db 32, 32, 88, 88, 88, 32, 32
+                       db 32, 32, 88, 88, 88, 32, 32
+
+    tablero_rotado_270 db 32, 32, 88, 88, 88, 32, 32
+                       db 32, 32, 88, 88, 88, 32, 32
+                       db 79, 95, 95, 88, 88, 88, 88
+                       db 95, 95, 95, 88, 88, 88, 88
+                       db 95, 79, 95, 88, 88, 88, 88
+                       db 32, 32, 88, 88, 88, 32, 32
+                       db 32, 32, 88, 88, 88, 32, 32
  
     textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
     posicion_invalida db  'La posicion no es valida, ingrese nuevamente la ficha a mover : ',0
@@ -51,15 +76,14 @@ section .data
     formatoTurno      db  '%d',0 
     capturas          dq   0
 
-    ; Definir las orientaciones posibles
-    textoOrientacion db 'Ingrese la orientacion del tablero (0: Normal, 1: 90 grados, 2: 180 grados, 3: 270 grados): ', 0
-    orientacion db 0
+
 
 section .bss 
     global ficha_a_mover
     global posicion_destino
     ficha_a_mover    resq    1
     posicion_destino resq    1
+    buffer resb 2
    
 
 
@@ -79,6 +103,9 @@ menu:
     
     cmp ah, 1        ; Opción 1: Iniciar juego
     je iniciar_juego
+
+    cmp ah, 2        ; Opción 2: Iniciar juego personalizado
+    je configurar_tablero
 
     cmp ah, 3
     je cargar_partida
@@ -272,3 +299,43 @@ reiniciar_juego:
 
     ret
 
+configurar_tablero:
+    ; Configurar el tablero con los símbolos personalizados
+
+    ; Solicita al usuario la orientacion
+   call_function seleccionar_orientacion
+    ; Seleccionar el tablero según la orientación
+    cmp ah, 0
+    je usar_tablero_normal
+    cmp ah, 1
+    je usar_tablero_90
+    cmp ah, 2
+    je usar_tablero_180
+    cmp ah, 3
+    je usar_tablero_270
+
+usar_tablero_normal:
+    lea rsi, [board_inicial]
+    jmp copiar_tablero
+
+usar_tablero_90:
+    lea rsi, [tablero_rotado_90]
+    jmp copiar_tablero
+
+usar_tablero_180:
+    lea rsi, [tablero_rotado_180]
+    jmp copiar_tablero
+
+usar_tablero_270:
+    lea rsi, [tablero_rotado_270]
+    jmp copiar_tablero
+
+copiar_tablero:
+    lea rdi, [board]
+    mov rcx, 49  ; Tamaño del tablero (7x7)
+    rep movsb
+
+    ; Configurar los oficiales (O) y soldados (X) en el tablero
+    lea rdi, [board]
+    mov rcx, 49  ; Tamaño del tablero (7x7)
+    jmp game
