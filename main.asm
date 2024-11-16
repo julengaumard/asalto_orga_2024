@@ -51,6 +51,10 @@ section .data
     formatoTurno      db  '%d',0 
     capturas          dq   0
 
+    ; Definir las orientaciones posibles
+    textoOrientacion db 'Ingrese la orientacion del tablero (0: Normal, 1: 90 grados, 2: 180 grados, 3: 270 grados): ', 0
+    orientacion db 0
+
 section .bss 
     global ficha_a_mover
     global posicion_destino
@@ -64,6 +68,7 @@ section .text
     global mov_valido
     global invalido_movimiento
     global reiniciar_juego
+    global invertir_tablero
 
 main:
 
@@ -266,3 +271,4 @@ reiniciar_juego:
     mov qword [capturas], 0
 
     ret
+
