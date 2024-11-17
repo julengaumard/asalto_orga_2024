@@ -23,7 +23,7 @@ add     rsp,8
 section .data
     global movimiento_realizado
     txtdestino db 'Ingrese la casilla de destino: ',0
-    destino_invalido db  'La posicion de destino no es valida, ingrese ficha a mover denuevo:',0
+    destino_invalido db  'La posicion de destino no es valida',0
     mensaje_verificacion_mov_oficial db 10, "El oficial seleccionado no posee movimientos válidos", 10, 0
     movimiento_valido db 0
     vector_desplazamientos db -8, -7, -6, -1, 1, 6, 7, 8 
@@ -184,6 +184,15 @@ validar_movimiento_oficial:
     mov r11, [posicion_destino]     ; Posición a la que se quiere mover
     sub r11, 1
 
+     
+    mov r9, [posicion_destino]   ; Cargar la posición de destino
+    sub r9, 1                    ; Ajustar a índice 0
+    lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
+    mov al, byte [r8]            ; Cargar el valor en la posición de destino
+
+    cmp al, 95                   ; Comprobar si la posición contiene '95' (vacía)
+    jmp invalido_movimiento 
+    
     ; Calcula la diferencia en la posición para verificar dirección y distancia
     mov r12, r10
     sub r12, r11                    ; r12 = diferencia de posiciones
@@ -255,6 +264,14 @@ validar_movimiento_soldado:
     sub r10, 1                      ; Ajustar a 0-index
     mov r11, [posicion_destino]     ; Posición a la que se quiere mover
     sub r11, 1
+    
+    mov r9, [posicion_destino]   ; Cargar la posición de destino
+    sub r9, 1                    ; Ajustar a índice 0
+    lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
+    mov al, byte [r8]            ; Cargar el valor en la posición de destino
+
+    cmp al, 95                   ; Comprobar si la posición contiene '95' (vacía)
+    jmp invalido_movimiento 
 
     ; Calcula la diferencia en la posición para verificar dirección y distancia
     mov r12, r10
