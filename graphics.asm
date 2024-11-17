@@ -59,9 +59,6 @@ section .data
     formato_nums_no_num     db  '    ',0
     salto_linea             db  10,0
 
-    ; Definir las orientaciones posibles
-    textoOrientacion db 'Ingrese la orientacion del tablero (0: Normal, 1: 90 grados, 2: 180 grados, 3: 270 grados): ', 0
-    orientacion db 0
  
 section .bss
     opcion resw 1
