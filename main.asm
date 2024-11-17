@@ -100,7 +100,7 @@ menu:
     
     call_function print_menu ; Imprime el menu y procesa el input
     
-    mov byte [orientacion_tablero], '1'
+    mov byte [orientacion_tablero], 1
 
     
     cmp ah, 1        ; Opción 1: Iniciar juego
