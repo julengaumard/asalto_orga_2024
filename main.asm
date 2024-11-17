@@ -13,6 +13,7 @@ extern validar_movimiento_oficial
 extern validar_movimiento_soldado
 extern verificar_salto_y_eliminar_oficial
 extern seleccionar_orientacion
+extern comprobar_fin_juego
 
 
 %macro call_function 1
@@ -23,11 +24,12 @@ add     rsp,8
  
 
 section .data
-     global turnoActual
-     global board 
-     global capturas
-     global orientacion_tablero
-     
+    global turnoActual
+    global board 
+    global capturas
+    global orientacion_tablero
+    global ficha_soldado
+    global ficha_oficial
 
     board   db 32, 32, 88, 88, 88, 32, 32
             db 32, 32, 88, 88, 88, 32, 32
@@ -69,7 +71,7 @@ section .data
                        db 32, 32, 88, 88, 88, 32, 32
                        db 32, 32, 88, 88, 88, 32, 32
  
-    textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
+    textoTurnoJuego db  10,'[Opciones: "0" para salir - "1" para guardar]',10,'Ingrese posicion de ficha [%c] a mover: ',0
     posicion_invalida db  'La posicion no es valida : ',0
     textoCargar db 'Deseas cargar la partida guardada? (1 para cargar, 0 para continuar): ', 0
     txtdestino db 'Ingrese la casilla de destino: ',0
@@ -78,6 +80,9 @@ section .data
     formatoTurno      db  '%d',0 
     capturas          dq   0
     orientacion_tablero db  1
+
+    ficha_soldado       db  88
+    ficha_oficial       db  79
     ; Tomo como orientacion 1 fortaleza abajo, orientacion 2 fortaleza a la derecha, orientacion 3 arriba,orientacion 4 izquierda
 
 section .bss 
@@ -125,6 +130,8 @@ iniciar_juego:
 game:
     lea rdi, [board]
     call_function    print_tablero_new   ; Imprime el tablero 
+
+    call_function    comprobar_fin_juego
 
     mov rdi, textoTurnoJuego 
     mov rsi, [turnoActual]
@@ -281,20 +288,6 @@ posicion_no_valida:
 
 
 
-
-
-
-
-
-
-; debug_print       db  'Valores: %c - %c',0 
-; mov rdi,debug_print
-; mov rsi, [turnoActual]
-; mov rdx, [r9]
-; sub     rsp,8
-; call    printf
-; add     rsp,8
-
 reiniciar_juego:
     ; Reiniciar el tablero
     lea rsi, [board_inicial]
@@ -305,6 +298,9 @@ reiniciar_juego:
     ; Reiniciar otras variables del juego
     mov byte [turnoActual], 'X'
     mov qword [capturas], 0
+
+    mov word [ficha_soldado], 88
+    mov word [ficha_oficial], 79
 
     ret
 
