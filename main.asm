@@ -200,7 +200,6 @@ pedir_posicion:
     call_function    scanf; Leer la posición de destino
     cmp byte[turnoActual], 79  
     je validar_movimiento_oficial
-    jne validar_movimiento_soldado
 
     ret
 
