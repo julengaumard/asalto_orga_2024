@@ -12,6 +12,7 @@ extern verificar_mov_oficial
 extern validar_movimiento_oficial
 extern validar_movimiento_soldado
 extern verificar_salto_y_eliminar_oficial
+extern seleccionar_orientacion
 
 
 %macro call_function 1
@@ -295,13 +296,13 @@ configurar_tablero:
     ; Solicita al usuario la orientacion
    call_function seleccionar_orientacion
     ; Seleccionar el tablero según la orientación
-    cmp ah, 0
-    je usar_tablero_normal
     cmp ah, 1
-    je usar_tablero_90
+    je usar_tablero_normal
     cmp ah, 2
-    je usar_tablero_180
+    je usar_tablero_90
     cmp ah, 3
+    je usar_tablero_180
+    cmp ah, 4
     je usar_tablero_270
 
 usar_tablero_normal:

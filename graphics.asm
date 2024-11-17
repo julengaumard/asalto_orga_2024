@@ -1,6 +1,7 @@
 extern printf 
 extern scanf 
 extern getchar
+extern orientacion_tablero
 
 %macro printCadena 1
 mov rdi,%1
@@ -44,6 +45,7 @@ section .data
     formato_tablero_salto   db  ' %c ',10,0
     titulo_tablero          db  10,'Tablero:                                Posiciones del tablero:',10,0
 
+    textoOrientacion        db  10,'[Opciones: "1" para 0° - "2" para 90° - "3" para 180° - "4" para 270°]',10,'Ingrese orientacion del tablero: ',0
     largo_fila              db  7
     desplaza_tablero        dq  0
     contador_numeros        dq  0    
@@ -63,6 +65,7 @@ section .bss
 section .text
     global print_menu 
     global print_tablero_new
+    global seleccionar_orientacion
 
 print_menu:
     printCadena titulo
@@ -87,7 +90,7 @@ error:
         mov     al, 0
         printCadena emsg
         call    clear_input_buffer
-        jmp     print_menu
+        jmp     seleccionar_orientacion
 
 clear_input_buffer:
         sub     rsp, 8
@@ -192,4 +195,18 @@ imprimir_espacio_vacio:
     mov     rdi,formato_nums_no_num
     jmp     imprimir_numero
 
-    
+seleccionar_orientacion:
+    printCadena textoOrientacion
+    mov rdi, inputFormat
+    mov rsi, orientacion_tablero
+    sub     rsp,8
+    call    scanf
+    add     rsp,8
+    cmp     rax, 1
+    jne     error
+    cmp     byte[orientacion_tablero], 4
+    jg      error
+    cmp     byte[orientacion_tablero], 1
+    jl      error
+    mov ah, [orientacion_tablero]
+    ret

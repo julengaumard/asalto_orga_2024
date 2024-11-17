@@ -261,13 +261,13 @@ validar_movimiento_soldado:
     sub r12, r11                    ; r12 = diferencia de posiciones
 
 
-    cmp byte [orientacion_tablero], '1'
+    cmp byte[orientacion_tablero], 1
     je orientacion1
-    cmp byte [orientacion_tablero], '2'
+    cmp byte[orientacion_tablero], 2
     je orientacion2
-    cmp byte [orientacion_tablero], '3'
+    cmp byte[orientacion_tablero], 3
     je orientacion3
-    cmp byte [orientacion_tablero], '4'
+    cmp byte[orientacion_tablero], 4
     je orientacion4
  
     ; Movimiento no permitido si no cumple ninguna condición
