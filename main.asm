@@ -169,6 +169,7 @@ ingrese_nuevamente:
     call_function verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial (Falta hacer que si no hay movimientos válidos, no pueda elegir una casilla destino)
 
     no_es_oficial:
+
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
      
 
@@ -184,10 +185,10 @@ ingrese_nuevamente:
 cambiar_soldado:
     call_function pedir_posicion
     call validar_movimiento_soldado
-    cmp byte [movimiento_realizado],1
-     jmp game
+    cmp byte [movimiento_realizado],0
+    jne game
     mov byte [turnoActual], 'O'
-     jmp game
+    jmp game
 
 cambiar_oficial:
     call_function pedir_posicion
