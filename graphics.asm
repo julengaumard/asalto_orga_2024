@@ -138,14 +138,10 @@ continuar_tablero:
 
 
 imprimir_fila_numeros: 
-
-
     mov     rdi,separador_nums
     sub     rsp,8
     call    printf
     add     rsp,8 
-
-    
     mov     qword[contador_numeros], 0
 
 resto_numeros:
