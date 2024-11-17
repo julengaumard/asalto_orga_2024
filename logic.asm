@@ -7,8 +7,10 @@ extern capturas
 extern formatoTurno
 extern ficha_a_mover
 extern mov_valido
-extern invalido_movimiento
+extern ingrese_nuevamente
+
 extern posicion_destino
+extern orientacion_tablero
 
 
 %macro call_function 1
@@ -19,16 +21,20 @@ add     rsp,8
 
 
 section .data
+    global movimiento_realizado
     txtdestino db 'Ingrese la casilla de destino: ',0
+    destino_invalido db  'La posicion de destino no es valida, ingrese ficha a mover denuevo:',0
     mensaje_verificacion_mov_oficial db 10, "El oficial seleccionado no posee movimientos válidos", 10, 0
     movimiento_valido db 0
     vector_desplazamientos db -8, -7, -6, -1, 1, 6, 7, 8 
+    movimiento_realizado db 0
 
 section .bss
    
 
 section .text 
 global validar_movimiento_oficial
+global validar_movimiento_soldado
 global verificar_salto_y_eliminar_oficial
 global verificar_mov_oficial 
 
@@ -172,6 +178,7 @@ captura_posible:
 
 
 validar_movimiento_oficial:
+    mov byte[movimiento_realizado],0
     mov r10, [ficha_a_mover]        ; Posición actual de la ficha a mover
     sub r10, 1                      ; Ajustar a 0-index
     mov r11, [posicion_destino]     ; Posición a la que se quiere mover
@@ -239,3 +246,170 @@ verificar_salto:
     mov byte [board + r13], 95      ; Elimina el soldado en la posición intermedia, colocando espacio vacío
     jmp mov_valido
 
+
+    
+    
+validar_movimiento_soldado:
+    mov byte[movimiento_realizado],0
+    mov r10, [ficha_a_mover]        ; Posición actual de la ficha a mover
+    sub r10, 1                      ; Ajustar a 0-index
+    mov r11, [posicion_destino]     ; Posición a la que se quiere mover
+    sub r11, 1
+
+    ; Calcula la diferencia en la posición para verificar dirección y distancia
+    mov r12, r10
+    sub r12, r11                    ; r12 = diferencia de posiciones
+
+
+    cmp byte [orientacion_tablero], '1'
+    je orientacion1
+    cmp byte [orientacion_tablero], '2'
+    je orientacion2
+    cmp byte [orientacion_tablero], '3'
+    je orientacion3
+    cmp byte [orientacion_tablero], '4'
+    je orientacion4
+ 
+    ; Movimiento no permitido si no cumple ninguna condición
+    jmp invalido_movimiento
+
+; Tomo como orientacion 1 fortaleza abajo, orientacion 2 fortaleza a la derecha, orientacion 3 arriba,orientacion 4 izquierda
+
+orientacion1:
+    cmp r10, 29
+    je excepcion1
+    cmp r10, 30
+    je excepcion1
+    cmp r10, 34
+    je excepcion1
+    cmp r10, 35
+    je excepcion1
+    
+    cmp r12, -7                    ; Hacia arriba
+    je mov_valido
+    cmp r12, -8                    ; Diagonal superior izquierda
+    je mov_valido
+    cmp r12, -6                    ; Diagonal superior derecha
+    je mov_valido
+    jmp invalido_movimiento
+
+orientacion2:
+    cmp r10, 5
+    je excepcion2
+    cmp r10, 12
+    je excepcion2
+    cmp r10, 40
+    je excepcion2
+    cmp r10, 47
+    je excepcion2
+    cmp r12, -1                     
+    je mov_valido
+    cmp r12, 6                     ; Diagonal inferior izquierda
+    je mov_valido
+    cmp r12, -8                    ; Diagonal superior izquierda
+    je mov_valido
+    jmp invalido_movimiento
+
+
+orientacion3:
+    cmp r10, 15
+    je excepcion3
+    cmp r10, 16
+    je excepcion3
+    cmp r10, 20
+    je excepcion3
+    cmp r10, 21
+    je excepcion3
+    cmp r12, 7                     ; Hacia abajo
+    je mov_valido
+    cmp r12, 6                     ; Diagonal inferior izquierda
+    je mov_valido
+    cmp r12, 8                     ; Diagonal inferior derecha
+    je mov_valido
+    jmp invalido_movimiento
+
+orientacion4:
+    cmp r10, 3
+    je excepcion4
+    cmp r10, 10
+    je excepcion4
+    cmp r10, 38
+    je excepcion4
+    cmp r10, 45
+    je excepcion4
+   
+    cmp r12, 1                     
+    je mov_valido
+    cmp r12, 8                     ; Diagonal inferior derecha
+    je mov_valido
+    cmp r12, -6                    ; Diagonal superior derecha
+    je mov_valido
+    jmp invalido_movimiento
+
+excepcion1:
+    cmp r10,29
+    je solo_izq
+    cmp r10,30
+    je solo_izq
+    cmp r10,34
+    je solo_der
+    cmp r10,35
+    je solo_der
+
+excepcion2:
+    cmp r10,5
+    je solo_arriba
+    cmp r10,12
+    je solo_arriba
+    cmp r10,40
+    je solo_abajo
+    cmp r10,47
+    je solo_abajo
+
+
+excepcion3:
+    cmp r10,15
+    je solo_izq
+    cmp r10,16
+    je solo_izq
+    cmp r10,20
+    je solo_der
+    cmp r10,21
+    je solo_der
+
+
+excepcion4:
+    cmp r10,3
+    je solo_arriba
+    cmp r10,10
+    je solo_arriba
+    cmp r10,38
+    je solo_abajo
+    cmp r10,45
+    je solo_abajo
+
+solo_der:
+    cmp r12, 1                    
+    je mov_valido
+    jmp invalido_movimiento
+
+solo_izq:
+    cmp r12, -1                     
+    je mov_valido
+    jmp invalido_movimiento
+
+solo_abajo:
+    cmp r12, 7                     ; Hacia abajo
+    je mov_valido
+    jmp invalido_movimiento
+
+solo_arriba:
+    cmp r12, -7                    ; Hacia arriba
+    je mov_valido
+    jmp invalido_movimiento
+
+invalido_movimiento:
+    mov rdi, destino_invalido
+    call   printf
+    mov byte[movimiento_realizado],1
+    ret
