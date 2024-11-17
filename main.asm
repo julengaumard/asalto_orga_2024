@@ -3,15 +3,15 @@ global menu
 extern printf 
 extern puts
 extern scanf
-
+extern movimiento_realizado
 extern print_menu 
 extern print_tablero_new
 extern save_game
 extern load_game
 extern verificar_mov_oficial 
 extern validar_movimiento_oficial
-extern verificar_salto_y_eliminar_oficial
 extern validar_movimiento_soldado
+extern verificar_salto_y_eliminar_oficial
 extern seleccionar_orientacion
 
 
@@ -23,10 +23,10 @@ add     rsp,8
  
 
 section .data
-     global turnoActual
-     global board 
-     global capturas
-     global formatoTurno
+    global turnoActual
+    global board 
+    global capturas
+    global orientacion_tablero
      
 
     board   db 32, 32, 88, 88, 88, 32, 32
@@ -37,13 +37,13 @@ section .data
             db 32, 32, 95, 95, 79, 32, 32
             db 32, 32, 79, 95, 95, 32, 32
 
-    board_inicial db 32, 32, 88, 88, 88, 32, 32
-                 db 32, 32, 88, 88, 88, 32, 32
-                 db 88, 88, 88, 88, 88, 88, 88
-                 db 88, 88, 88, 88, 88, 88, 88
-                 db 88, 88, 95, 95, 95, 88, 88
-                 db 32, 32, 95, 95, 79, 32, 32
-                 db 32, 32, 79, 95, 95, 32, 32
+    board_inicial   db 32, 32, 88, 88, 88, 32, 32
+                    db 32, 32, 88, 88, 88, 32, 32
+                    db 88, 88, 88, 88, 88, 88, 88
+                    db 88, 88, 88, 88, 88, 88, 88
+                    db 88, 88, 95, 95, 95, 88, 88
+                    db 32, 32, 95, 95, 79, 32, 32
+                    db 32, 32, 79, 95, 95, 32, 32
     ;Tableros para las rotaciones
     tablero_rotado_90 db 32, 32, 88, 88, 88, 32, 32
                       db 32, 32, 88, 88, 88, 32, 32
@@ -69,16 +69,16 @@ section .data
                        db 32, 32, 88, 88, 88, 32, 32
                        db 32, 32, 88, 88, 88, 32, 32
  
-    textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
-    posicion_invalida db  'La posicion no es valida, ingrese nuevamente la ficha a mover : ',0
+    textoTurnoJuego db  10,'[Opciones: "0" para salir - "1" para guardar]',10,'Ingrese posicion de ficha [%c] a mover: ',0
+    posicion_invalida db  'La posicion no es valida : ',0
     textoCargar db 'Deseas cargar la partida guardada? (1 para cargar, 0 para continuar): ', 0
     txtdestino db 'Ingrese la casilla de destino: ',0
     movimiento_valido db 0    
     turnoActual       db  'X',0
     formatoTurno      db  '%d',0 
-    capturas          dq    0
-
-
+    capturas          dq   0
+    orientacion_tablero db  1
+    ; Tomo como orientacion 1 fortaleza abajo, orientacion 2 fortaleza a la derecha, orientacion 3 arriba,orientacion 4 izquierda
 
 section .bss 
     global ficha_a_mover
@@ -92,7 +92,7 @@ section .bss
 section .text
     global main
     global mov_valido
-    global invalido_movimiento
+    global ingrese_nuevamente
     global reiniciar_juego
     global invertir_tablero
 
@@ -103,11 +103,13 @@ menu:
     
     call_function print_menu ; Imprime el menu y procesa el input
     
+    mov byte [orientacion_tablero], '1'
+
     
     cmp ah, 1        ; Opción 1: Iniciar juego
     je iniciar_juego
 
-    cmp ah, 2        ; Opción 2: Iniciar juego personalizado
+    cmp ah, 2
     je configurar_tablero
 
     cmp ah, 3
@@ -128,8 +130,7 @@ game:
     call_function    print_tablero_new   ; Imprime el tablero 
 
     mov rdi, textoTurnoJuego 
-    mov rsi, [turnoActual]
-    mov rdx, [capturas]
+    mov rsi, [turnoActual] 
     call_function    printf   ; Imprime texto para solicitar movimiento
 
 
@@ -142,7 +143,7 @@ ingrese_nuevamente:
 
     ; Verifica si la entrada es '0' para guardar la partida
     mov al, [ficha_a_mover]
-    cmp al, 0        ; Compara si la entrada es 0
+    cmp al, 1        ; Compara si la entrada es 0
     jl exit
     je guardar_partida ; Si es 0, guarda la partida
 
@@ -170,9 +171,10 @@ ingrese_nuevamente:
     je verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial (Falta hacer que si no hay movimientos válidos, no pueda elegir una casilla destino)
 ;    no_es_oficial:
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
-    
-    ; Modificar la matriz y evaluar si hay que eliminar un valor del enemigo
-     ; Cambiar variable de turno
+     
+
+    ; Modificar la matris y evaluar si hay que eliminar un valor del enemigo
+    ;Cambiar variable de turno
     cmp byte [turnoActual], 'X'
     je cambiar_soldado
     cmp byte [turnoActual], 'O'
@@ -181,12 +183,16 @@ ingrese_nuevamente:
 
     
 cambiar_soldado:
-    call_function pedir_posicion 
+    call_function pedir_posicion
+    call validar_movimiento_soldado
+    
     mov byte [turnoActual], 'O'
      jmp game
 
 cambiar_oficial:
     call_function pedir_posicion
+    call validar_movimiento_oficial
+    
     mov byte [turnoActual], 'X' ; Cambiar turno a los soldados
     jmp game
 
@@ -198,8 +204,6 @@ pedir_posicion:
     mov rdi, formatoTurno
     mov rsi, posicion_destino
     call_function    scanf; Leer la posición de destino
-    cmp byte[turnoActual], 79  
-    je validar_movimiento_oficial
 
     ret
 
@@ -236,8 +240,6 @@ mov_valido:
 fuera_de_tablero:
     ret
 
-invalido_movimiento:
-    jmp ingrese_nuevamente
     
 valido_movimiento:
     call_function pedir_posicion
@@ -273,18 +275,6 @@ posicion_no_valida:
     jmp ingrese_nuevamente  
 
 
-
-
-
-
-; debug_print       db  'Valores: %c - %c',0 
-; mov rdi,debug_print
-; mov rsi, [turnoActual]
-; mov rdx, [r9]
-; sub     rsp,8
-; call    printf
-; add     rsp,8
-
 reiniciar_juego:
     ; Reiniciar el tablero
     lea rsi, [board_inicial]
@@ -298,19 +288,20 @@ reiniciar_juego:
 
     ret
 
+
 configurar_tablero:
     ; Configurar el tablero con los símbolos personalizados
 
     ; Solicita al usuario la orientacion
    call_function seleccionar_orientacion
     ; Seleccionar el tablero según la orientación
-    cmp ah, 0
-    je usar_tablero_normal
     cmp ah, 1
-    je usar_tablero_90
+    je usar_tablero_normal
     cmp ah, 2
-    je usar_tablero_180
+    je usar_tablero_90
     cmp ah, 3
+    je usar_tablero_180
+    cmp ah, 4
     je usar_tablero_270
 
 usar_tablero_normal:
