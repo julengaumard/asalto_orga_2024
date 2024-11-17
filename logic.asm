@@ -23,7 +23,7 @@ add     rsp,8
 section .data
     global movimiento_realizado
     txtdestino db 'Ingrese la casilla de destino: ',0
-    destino_invalido db  'La posicion de destino no es valida, ingrese ficha a mover denuevo:',0
+    destino_invalido db  'La posicion de destino no es valida',0
     mensaje_verificacion_mov_oficial db 10, "El oficial seleccionado no posee movimientos válidos", 10, 0
     movimiento_valido db 0
     vector_desplazamientos db -8, -7, -6, -1, 1, 6, 7, 8 
