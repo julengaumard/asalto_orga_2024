@@ -43,6 +43,30 @@ section .data
                     db 88, 88, 95, 95, 95, 88, 88
                     db 32, 32, 95, 95, 79, 32, 32
                     db 32, 32, 79, 95, 95, 32, 32
+    ;Tableros para las rotaciones
+    tablero_rotado_90 db 32, 32, 88, 88, 88, 32, 32
+                      db 32, 32, 88, 88, 88, 32, 32
+                      db 88, 88, 88, 88, 95, 79, 95
+                      db 88, 88, 88, 88, 95, 95, 95
+                      db 88, 88, 88, 88, 95, 95, 79
+                      db 32, 32, 88, 88, 88, 32, 32
+                      db 32, 32, 88, 88, 88, 32, 32
+
+    tablero_rotado_180 db 32, 32, 79, 95, 95, 32, 32
+                       db 32, 32, 95, 95, 79, 32, 32
+                       db 88, 88, 95, 95, 95, 88, 88
+                       db 88, 88, 88, 88, 88, 88, 88
+                       db 88, 88, 88, 88, 88, 88, 88
+                       db 32, 32, 88, 88, 88, 32, 32
+                       db 32, 32, 88, 88, 88, 32, 32
+
+    tablero_rotado_270 db 32, 32, 88, 88, 88, 32, 32
+                       db 32, 32, 88, 88, 88, 32, 32
+                       db 79, 95, 95, 88, 88, 88, 88
+                       db 95, 95, 95, 88, 88, 88, 88
+                       db 95, 79, 95, 88, 88, 88, 88
+                       db 32, 32, 88, 88, 88, 32, 32
+                       db 32, 32, 88, 88, 88, 32, 32
  
     textoTurnoJuego db  10,'[Opciones: "0" para salir - "1" para guardar]',10,'Ingrese posicion de ficha [%c] a mover: ',0
     posicion_invalida db  'La posicion no es valida : ',0
@@ -80,6 +104,9 @@ menu:
     
     cmp ah, 1        ; Opción 1: Iniciar juego
     je iniciar_juego
+
+    cmp ah, 2
+    je configurar_tablero
 
     cmp ah, 3
     je cargar_partida
@@ -260,3 +287,45 @@ reiniciar_juego:
     mov qword [capturas], 0
 
     ret
+
+
+configurar_tablero:
+    ; Configurar el tablero con los símbolos personalizados
+
+    ; Solicita al usuario la orientacion
+   call_function seleccionar_orientacion
+    ; Seleccionar el tablero según la orientación
+    cmp ah, 0
+    je usar_tablero_normal
+    cmp ah, 1
+    je usar_tablero_90
+    cmp ah, 2
+    je usar_tablero_180
+    cmp ah, 3
+    je usar_tablero_270
+
+usar_tablero_normal:
+    lea rsi, [board_inicial]
+    jmp copiar_tablero
+
+usar_tablero_90:
+    lea rsi, [tablero_rotado_90]
+    jmp copiar_tablero
+
+usar_tablero_180:
+    lea rsi, [tablero_rotado_180]
+    jmp copiar_tablero
+
+usar_tablero_270:
+    lea rsi, [tablero_rotado_270]
+    jmp copiar_tablero
+
+copiar_tablero:
+    ; Copiar el tablero rotado al tablero principal
+    lea rdi, [board]
+    mov rcx, 49  ; Tamaño del tablero (7x7)
+    rep movsb ; Copiar el tablero rotado al tablero principal
+    jmp game
+
+
+
