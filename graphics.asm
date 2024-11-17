@@ -69,6 +69,7 @@ section .text
     global print_menu 
     global print_tablero_new
     global seleccionar_orientacion
+    global orientacion
 
 print_menu:
     printCadena titulo

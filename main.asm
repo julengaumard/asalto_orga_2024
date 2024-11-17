@@ -11,6 +11,7 @@ extern load_game
 extern verificar_mov_oficial 
 extern validar_movimiento_oficial
 extern verificar_salto_y_eliminar_oficial
+extern validar_movimiento_soldado
 extern seleccionar_orientacion
 
 
@@ -25,6 +26,7 @@ section .data
      global turnoActual
      global board 
      global capturas
+     global formatoTurno
      
 
     board   db 32, 32, 88, 88, 88, 32, 32
@@ -74,7 +76,7 @@ section .data
     movimiento_valido db 0    
     turnoActual       db  'X',0
     formatoTurno      db  '%d',0 
-    capturas          dq   0
+    capturas          dq    0
 
 
 
@@ -83,7 +85,7 @@ section .bss
     global posicion_destino
     ficha_a_mover    resq    1
     posicion_destino resq    1
-    buffer resb 2
+
    
 
 
@@ -93,6 +95,7 @@ section .text
     global invalido_movimiento
     global reiniciar_juego
     global invertir_tablero
+
 
 main:
 
@@ -163,14 +166,12 @@ ingrese_nuevamente:
 
     ; Hay que chequear si es una ficha que se puede mover
     cmp byte[turnoActual], 79               ; Verifica que sea un oficial (Debería compararse con una variable que contenga la ficha del oficial)
-    jne no_es_oficial
-    call_function verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial (Falta hacer que si no hay movimientos válidos, no pueda elegir una casilla destino)
-
-    no_es_oficial:
+;    jne no_es_oficial
+    je verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial (Falta hacer que si no hay movimientos válidos, no pueda elegir una casilla destino)
+;    no_es_oficial:
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
-     
-
-    ; Modificar la matris y evaluar si hay que eliminar un valor del enemigo
+    
+    ; Modificar la matriz y evaluar si hay que eliminar un valor del enemigo
      ; Cambiar variable de turno
     cmp byte [turnoActual], 'X'
     je cambiar_soldado
@@ -180,7 +181,7 @@ ingrese_nuevamente:
 
     
 cambiar_soldado:
-    
+    call_function pedir_posicion 
     mov byte [turnoActual], 'O'
      jmp game
 
@@ -197,7 +198,9 @@ pedir_posicion:
     mov rdi, formatoTurno
     mov rsi, posicion_destino
     call_function    scanf; Leer la posición de destino
-    call validar_movimiento_oficial
+    cmp byte[turnoActual], 79  
+    je validar_movimiento_oficial
+    jne validar_movimiento_soldado
 
     ret
 
@@ -222,9 +225,6 @@ mover:
     mov al, byte [turnoActual]     ; Cargar la ficha a mover (X o O) en AL
     mov byte [r8], al            ; Colocar el valor de AL en la nueva posición
 ret
-
-
-
 
 
 
@@ -331,11 +331,11 @@ usar_tablero_270:
     jmp copiar_tablero
 
 copiar_tablero:
+    ; Copiar el tablero rotado al tablero principal
     lea rdi, [board]
     mov rcx, 49  ; Tamaño del tablero (7x7)
-    rep movsb
-
-    ; Configurar los oficiales (O) y soldados (X) en el tablero
-    lea rdi, [board]
-    mov rcx, 49  ; Tamaño del tablero (7x7)
+    rep movsb ; Copiar el tablero rotado al tablero principal
     jmp game
+
+
+
