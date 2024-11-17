@@ -23,10 +23,10 @@ add     rsp,8
  
 
 section .data
-    global turnoActual
-    global board 
-    global capturas
-    global orientacion_tablero
+     global turnoActual
+     global board 
+     global capturas
+     global orientacion_tablero
      
 
     board   db 32, 32, 88, 88, 88, 32, 32
@@ -69,7 +69,7 @@ section .data
                        db 32, 32, 88, 88, 88, 32, 32
                        db 32, 32, 88, 88, 88, 32, 32
  
-    textoTurnoJuego db  10,'[Opciones: "0" para salir - "1" para guardar]',10,'Ingrese posicion de ficha [%c] a mover: ',0
+    textoTurnoJuego db  10,'Turno [%c]',10,'Capturas [%i]',10,'(Ingrese -1 para salir)',10,'Ingrese posicion de ficha a mover o "0" para guardar: ',0
     posicion_invalida db  'La posicion no es valida : ',0
     textoCargar db 'Deseas cargar la partida guardada? (1 para cargar, 0 para continuar): ', 0
     txtdestino db 'Ingrese la casilla de destino: ',0
@@ -127,7 +127,8 @@ game:
     call_function    print_tablero_new   ; Imprime el tablero 
 
     mov rdi, textoTurnoJuego 
-    mov rsi, [turnoActual] 
+    mov rsi, [turnoActual]
+    mov rdx, [capturas]
     call_function    printf   ; Imprime texto para solicitar movimiento
 
 
@@ -140,7 +141,7 @@ ingrese_nuevamente:
 
     ; Verifica si la entrada es '0' para guardar la partida
     mov al, [ficha_a_mover]
-    cmp al, 1        ; Compara si la entrada es 0
+    cmp al, 0        ; Compara si la entrada es 0
     jl exit
     je guardar_partida ; Si es 0, guarda la partida
 
@@ -183,14 +184,16 @@ ingrese_nuevamente:
 cambiar_soldado:
     call_function pedir_posicion
     call validar_movimiento_soldado
-    
+    cmp byte [movimiento_realizado],1
+     jmp game
     mov byte [turnoActual], 'O'
      jmp game
 
 cambiar_oficial:
     call_function pedir_posicion
     call validar_movimiento_oficial
-    
+    cmp byte [movimiento_realizado],1
+     jmp game
     mov byte [turnoActual], 'X' ; Cambiar turno a los soldados
     jmp game
 
@@ -275,6 +278,21 @@ posicion_no_valida:
     call_function    printf
     jmp ingrese_nuevamente  
 
+
+
+
+
+
+
+
+
+; debug_print       db  'Valores: %c - %c',0 
+; mov rdi,debug_print
+; mov rsi, [turnoActual]
+; mov rdx, [r9]
+; sub     rsp,8
+; call    printf
+; add     rsp,8
 
 reiniciar_juego:
     ; Reiniciar el tablero
