@@ -147,6 +147,7 @@ quien_comienza:
     call_function getchar
     mov [comienza], al
     cmp byte[comienza], "1"
+    jl exit
     je game
     cmp byte[comienza], "2"
     je cambiar_turno
