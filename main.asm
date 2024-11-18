@@ -212,12 +212,11 @@ no_es_oficial:
     je cambiar_oficial
     ret
 
-    
 cambiar_soldado:
     call_function pedir_posicion
     call validar_movimiento_soldado
     cmp byte [movimiento_realizado],1
-    je game
+    je ingrese_nuevamente
     mov al, [ficha_oficial]
     mov byte [turnoActual], al; Cambiar turno a los oficiales
     jmp game
@@ -226,11 +225,10 @@ cambiar_oficial:
     call_function pedir_posicion
     call validar_movimiento_oficial
     cmp byte [movimiento_realizado],1
-    je game
+    je ingrese_nuevamente
     mov al, [ficha_soldado]
     mov byte [turnoActual], al; Cambiar turno a los soldados
     jmp game
-
 
 
 pedir_posicion:
@@ -375,5 +373,6 @@ copiar_tablero:
     mov rcx, 49  ; Tamaño del tablero (7x7)
     rep movsb ; Copiar el tablero rotado al tablero principal
     ret
+
 
 
