@@ -33,6 +33,7 @@ section .data
     global orientacion_tablero
     global ficha_soldado
     global ficha_oficial
+    global turnoActual
 
     board   db 32, 32, 88, 88, 88, 32, 32
             db 32, 32, 88, 88, 88, 32, 32

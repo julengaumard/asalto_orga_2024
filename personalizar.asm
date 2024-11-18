@@ -4,6 +4,7 @@ extern getchar
 extern ficha_soldado
 extern ficha_oficial
 extern board
+extern turnoActual
 
 %macro printCadena 1
     mov rdi,%1
@@ -60,28 +61,26 @@ personalizar:
 
 no_personalizar:
     printCadena mensaje_no_personalizando
+    mov byte[ficha_soldado], 88
+    mov byte[ficha_oficial], 79
 
 fin_personalizar:
+    mov al, [ficha_soldado]
+    mov byte[turnoActual], al
     ret
 
 personalizar_soldados:
     printCadena texto_ficha_soldados
-    mov rdi, inputFormat
-    mov rsi, ficha_soldado
-    sub rsp, 8
-    call scanf
-    add rsp, 8
     call clear_input_buffer  ; Limpiar el buffer de entrada
+    call getchar
+    mov [ficha_soldado], al
     ret
 
 personalizar_oficiales:
     printCadena texto_ficha_oficiales
-    mov rdi, inputFormat
-    mov rsi, ficha_oficial
-    sub rsp, 8
-    call scanf
-    add rsp, 8
     call clear_input_buffer  ; Limpiar el buffer de entrada
+    call getchar
+    mov [ficha_oficial], al
     ret
 
 clear_input_buffer:
@@ -106,8 +105,8 @@ reemplazar_soldados:
 ; Cargar ficha_soldado en AL
 
 modificar_loop_soldados:
-    cmp byte [rdi], 'X'      ; Comparar si es 'X'
-    jmp siguiente_elemento_soldados
+    cmp byte [rdi], 88      ; Comparar si es 'X'
+    jne siguiente_elemento_soldados
     mov byte [rdi], al       ; Reemplazar en la matriz
 
 siguiente_elemento_soldados:
@@ -122,7 +121,7 @@ reemplazar_oficiales:
     mov al, [ficha_oficial]  ; Cargar ficha_oficial en AL
 
 modificar_loop_oficiales:
-    cmp byte [rdi], 'O'      ; Comparar si es 'O'
+    cmp byte [rdi], 79      ; Comparar si es 'O'
     jne siguiente_elemento_oficiales
     mov byte [rdi], al       ; Reemplazar en la matriz
 
