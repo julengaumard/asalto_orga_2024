@@ -51,6 +51,7 @@ section .data
                     db 88, 88, 95, 95, 95, 88, 88
                     db 32, 32, 95, 95, 79, 32, 32
                     db 32, 32, 79, 95, 95, 32, 32
+    
     ;Tableros para las rotaciones
     tablero_rotado_90 db 32, 32, 88, 88, 88, 32, 32
                       db 32, 32, 88, 88, 88, 32, 32
@@ -209,8 +210,8 @@ no_es_oficial:
 cambiar_soldado:
     call_function pedir_posicion
     call validar_movimiento_soldado
-    cmp byte [movimiento_realizado],0
-    jne game
+    cmp byte [movimiento_realizado],1
+    je game
     mov al, [ficha_oficial]
     mov byte [turnoActual], al; Cambiar turno a los oficiales
     jmp game
@@ -219,7 +220,7 @@ cambiar_oficial:
     call_function pedir_posicion
     call validar_movimiento_oficial
     cmp byte [movimiento_realizado],1
-    jmp game
+    je game
     mov al, [ficha_soldado]
     mov byte [turnoActual], al; Cambiar turno a los soldados
     jmp game
@@ -227,6 +228,7 @@ cambiar_oficial:
 
 
 pedir_posicion:
+
     mov rdi, txtdestino  ; Imprime texto para pedir destino
     call_function    printf
     mov rdi, formatoTurno
@@ -367,6 +369,7 @@ copiar_tablero:
     mov rcx, 49  ; Tamaño del tablero (7x7)
     rep movsb ; Copiar el tablero rotado al tablero principal
     ret
+
 
 
 
