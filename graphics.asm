@@ -227,8 +227,9 @@ seleccionar_orientacion:
     ret
 
 clear_screen:
-    lea rdi, [clear_cmd]      ; Load the address of the clear command
+    lea rdi, [clear_cmd]      ; Cargar la dirección del comando clear
     sub     rsp,8
     call    system
     add     rsp,8
     ret
+

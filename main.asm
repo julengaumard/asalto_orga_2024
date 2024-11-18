@@ -15,6 +15,8 @@ extern verificar_salto_y_eliminar_oficial
 extern seleccionar_orientacion
 extern comprobar_fin_juego
 extern clear_screen
+extern personalizar_fichas
+extern reemplazar_simbolos
 
 %macro call_function 1
 sub     rsp,8
@@ -112,7 +114,7 @@ menu:
     je iniciar_juego
 
     cmp ah, 2
-    je configurar_tablero
+    je crear_juego_personalizado
 
     cmp ah, 3
     je cargar_partida
@@ -125,6 +127,11 @@ menu:
 
 iniciar_juego:
     call_function reiniciar_juego
+    jmp game
+
+crear_juego_personalizado:
+    call_function configurar_tablero
+    call_function personalizar_fichas
     jmp game
 
 game:
@@ -343,7 +350,7 @@ copiar_tablero:
     lea rdi, [board]
     mov rcx, 49  ; Tamaño del tablero (7x7)
     rep movsb ; Copiar el tablero rotado al tablero principal
-    jmp game
+    ret
 
 
 
