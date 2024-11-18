@@ -22,6 +22,14 @@ add     rsp,8
 
 
 section .data
+    global soldado_arriba
+    global soldado_abajo 
+    global soldado_derecha 
+    global soldado_izquierda
+    global soldado_diagonalsupizq
+    global soldado_diagonalsupder
+    global soldado_diagonalinfizq
+    global soldado_diagonalinfder
     global movimiento_realizado
     txtdestino db 'Ingrese la casilla de destino: ',0
     destino_invalido db  'La posicion de destino no es valida',0
@@ -31,6 +39,14 @@ section .data
     vector_desplazamientos db -8, -7, -6, -1, 1, 6, 7, 8 
     movimiento_realizado db 0
     es_movimiento_posible db 0
+    soldado_arriba dq 0
+    soldado_abajo dq 0
+    soldado_derecha dq 0
+    soldado_izquierda dq 0
+    soldado_diagonalsupizq dq 0
+    soldado_diagonalsupder dq 0
+    soldado_diagonalinfizq dq 0
+    soldado_diagonalinfder dq 0
 
 section .bss
     casilla_roja_1  resb    1
@@ -400,6 +416,14 @@ direccion_posible_costado_vertical:
 
 
 validar_movimiento_oficial:
+    mov r9, [posicion_destino]   ; Cargar la posición de destino
+    sub r9, 1                    ; Ajustar a índice 0
+    lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
+    mov al, byte [r8]            ; Cargar el valor en la posición de destino
+
+    cmp al, 95                   ; Comprobar si la posición contiene '95' (vacía)
+    jne invalido_movimiento    
+
     mov byte[movimiento_realizado],0
     mov r10, [ficha_a_mover]        ; Posición actual de la ficha a mover
     sub r10, 1                      ; Ajustar a 0-index
@@ -473,6 +497,15 @@ verificar_salto:
     
     
 validar_movimiento_soldado:
+    mov r9, [posicion_destino]   ; Cargar la posición de destino
+    sub r9, 1                    ; Ajustar a índice 0
+    lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
+    mov al, byte [r8]            ; Cargar el valor en la posición de destino
+
+    cmp al, 95                   ; Comprobar si la posición contiene '95' (vacía)
+    jne invalido_movimiento   
+
+
     mov byte[movimiento_realizado],0
     mov r10, [ficha_a_mover]        ; Posición actual de la ficha a mover
     sub r10, 1                      ; Ajustar a 0-index
@@ -499,136 +532,103 @@ validar_movimiento_soldado:
 ; Tomo como orientacion 1 fortaleza abajo, orientacion 2 fortaleza a la derecha, orientacion 3 arriba,orientacion 4 izquierda
 
 orientacion1:
-    cmp r10, 29
-    je excepcion1
-    cmp r10, 30
-    je excepcion1
-    cmp r10, 34
-    je excepcion1
-    cmp r10, 35
-    je excepcion1
-    
-    cmp r12, -7                    ; Hacia arriba
-    je mov_valido
+    cmp byte[ficha_a_mover], 29
+    je solo_der
+    cmp byte[ficha_a_mover], 34
+    je solo_izq
+    cmp byte[ficha_a_mover], 35
+    je solo_izq
+    cmp byte[ficha_a_mover], 30
+    je solo_der
+
+    cmp r12, -7                    ; Hacia abajo
+    je s_abajo
     cmp r12, -8                    ; Diagonal superior izquierda
-    je mov_valido
+    je s_diagonal_infder
     cmp r12, -6                    ; Diagonal superior derecha
-    je mov_valido
+    je s_diagonal_infizq
+
     jmp invalido_movimiento
 
 orientacion2:
-    cmp r10, 5
-    je excepcion2
-    cmp r10, 12
-    je excepcion2
-    cmp r10, 40
-    je excepcion2
-    cmp r10, 47
-    je excepcion2
+    cmp byte[ficha_a_mover],5
+    je solo_abajo
+    cmp byte[ficha_a_mover],12
+    je solo_abajo
+    cmp byte[ficha_a_mover],40
+    je solo_arriba
+    cmp byte[ficha_a_mover],47
+    je solo_arriba
+
+
     cmp r12, -1                     
-    je mov_valido
+    je s_derecha
     cmp r12, 6                     ; Diagonal inferior izquierda
-    je mov_valido
+    je s_diagonal_supder
     cmp r12, -8                    ; Diagonal superior izquierda
-    je mov_valido
+    je s_diagonal_infder
     jmp invalido_movimiento
 
 
 orientacion3:
-    cmp r10, 15
-    je excepcion3
-    cmp r10, 16
-    je excepcion3
-    cmp r10, 20
-    je excepcion3
-    cmp r10, 21
-    je excepcion3
-    cmp r12, 7                     ; Hacia abajo
-    je mov_valido
+    cmp byte[ficha_a_mover],15
+    je solo_der
+    cmp byte[ficha_a_mover],16
+    je solo_der
+    cmp byte[ficha_a_mover],20
+    je solo_izq
+    cmp byte[ficha_a_mover],21
+    je solo_izq
+
+    cmp r12, 7                     ; Hacia arriba
+    je s_arriba
     cmp r12, 6                     ; Diagonal inferior izquierda
-    je mov_valido
+    je s_diagonal_supder
     cmp r12, 8                     ; Diagonal inferior derecha
-    je mov_valido
+    je s_diagonal_supizq
     jmp invalido_movimiento
 
 orientacion4:
-    cmp r10, 3
-    je excepcion4
-    cmp r10, 10
-    je excepcion4
-    cmp r10, 38
-    je excepcion4
-    cmp r10, 45
-    je excepcion4
+    cmp byte[ficha_a_mover],3
+    je solo_abajo
+    cmp byte[ficha_a_mover],10
+    je solo_abajo
+    cmp byte[ficha_a_mover],38
+    je solo_arriba
+    cmp byte[ficha_a_mover],45
+    je solo_arriba
    
     cmp r12, 1                     
-    je mov_valido
+    je s_izquierda
     cmp r12, 8                     ; Diagonal inferior derecha
-    je mov_valido
+    je s_diagonal_supizq
     cmp r12, -6                    ; Diagonal superior derecha
-    je mov_valido
+    je s_diagonal_infizq
     jmp invalido_movimiento
 
-excepcion1:
-    cmp r10,29
-    je solo_izq
-    cmp r10,30
-    je solo_izq
-    cmp r10,34
-    je solo_der
-    cmp r10,35
-    je solo_der
-
-excepcion2:
-    cmp r10,5
-    je solo_arriba
-    cmp r10,12
-    je solo_arriba
-    cmp r10,40
-    je solo_abajo
-    cmp r10,47
-    je solo_abajo
 
 
-excepcion3:
-    cmp r10,15
-    je solo_izq
-    cmp r10,16
-    je solo_izq
-    cmp r10,20
-    je solo_der
-    cmp r10,21
-    je solo_der
 
-
-excepcion4:
-    cmp r10,3
-    je solo_arriba
-    cmp r10,10
-    je solo_arriba
-    cmp r10,38
-    je solo_abajo
-    cmp r10,45
-    je solo_abajo
-
-solo_der:
-    cmp r12, 1                    
-    je mov_valido
-    jmp invalido_movimiento
 
 solo_izq:
-    cmp r12, -1                     
-    je mov_valido
+    cmp r12, 1                    
+    je s_izquierda
     jmp invalido_movimiento
+    
 
-solo_abajo:
-    cmp r12, 7                     ; Hacia abajo
-    je mov_valido
+solo_der:
+    cmp r12, -1                     
+    je s_derecha
     jmp invalido_movimiento
 
 solo_arriba:
-    cmp r12, -7                    ; Hacia arriba
-    je mov_valido
+    cmp r12, 7                     
+    je s_arriba
+    jmp invalido_movimiento
+
+solo_abajo:
+    cmp r12, -7                    
+    je s_abajo
     jmp invalido_movimiento
 
 invalido_movimiento:
@@ -636,3 +636,35 @@ invalido_movimiento:
     call   printf
     mov byte[movimiento_realizado],1
     ret
+
+s_abajo:
+    add qword [soldado_abajo], 1
+    jmp mov_valido
+
+s_arriba:
+    add qword [soldado_arriba], 1
+    jmp mov_valido
+
+s_diagonal_supizq:
+    add qword [soldado_diagonalsupizq], 1
+    jmp mov_valido
+
+s_diagonal_supder:
+    add qword [soldado_diagonalsupder], 1
+    jmp mov_valido
+
+s_diagonal_infizq:
+    add qword [soldado_diagonalinfizq], 1
+    jmp mov_valido
+
+s_diagonal_infder:
+    add qword [soldado_diagonalinfder], 1
+    jmp mov_valido
+
+s_derecha:
+    add qword [soldado_derecha], 1
+    jmp mov_valido
+
+s_izquierda:
+    add qword [soldado_izquierda], 1
+    jmp mov_valido
