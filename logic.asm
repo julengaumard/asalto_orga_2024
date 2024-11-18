@@ -25,12 +25,24 @@ section .data
     global movimiento_realizado
     txtdestino db 'Ingrese la casilla de destino: ',0
     destino_invalido db  'La posicion de destino no es valida',0
-    mensaje_verificacion_mov_oficial db 10, "El oficial seleccionado no posee movimientos válidos", 10, 0
+    sin_movimientos_validos db 10, "La ficha seleccionada no posee movimientos válidos", 10, 0
+    mensaje_error_orientacion_tablero db 10, "La orientación del tablero no es válida.", 10, 0
     movimiento_valido db 0
     vector_desplazamientos db -8, -7, -6, -1, 1, 6, 7, 8 
     movimiento_realizado db 0
+    es_movimiento_posible db 0
 
 section .bss
+    casilla_roja_1  resb    1
+    casilla_roja_2  resb    1
+    casilla_roja_3  resb    1
+    casilla_roja_4  resb    1
+    direccion_posible_1     resb    1
+    direccion_posible_2     resb    1
+    direccion_posible_3     resb    1
+    direccion_posible_costado_1     resb    1
+    direccion_posible_costado_2     resb    1
+
    
 
 section .text 
@@ -38,6 +50,7 @@ global validar_movimiento_oficial
 global validar_movimiento_soldado
 global verificar_salto_y_eliminar_oficial
 global verificar_mov_oficial 
+global verificar_movimiento_soldado
 
 
 ; Si el movimiento es posible, establece true en movimiento_valido
@@ -48,6 +61,7 @@ verificar_mov_oficial:
 
 ; Verifica si los alrededores del oficial están libres o si hay un soldado y se puede capturar
 loop_verificar_mov_oficial:
+    mov byte[es_movimiento_posible], 1                  ; Si es true, verifica si es un movimiento válido. Si es false, salta a la siguiente iteración o termina el ciclo
     mov r10, [ficha_a_mover]                            ; Posición actual de la ficha a mover
     sub r10, 1                                          ; Se ajusta a 0-index
     lea r12, [board]                                    ; Guarda el puntero al primer elemento del tablero
@@ -56,11 +70,14 @@ loop_verificar_mov_oficial:
     call_function esta_borde_lateral_tablero                 ; Verifica si la ficha se encuentra en los bordes laterales del tablero
     call_function esta_borde_superior_inferior_tablero       ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
 
+    cmp byte[es_movimiento_posible], 1
+    jne continuar_verificacion_mov_oficial
+
     mov dl, [r11]
     movsx rdx, dl
     add r12, rdx                                        ; Calcula el desplazamiento respecto a la posición de la ficha
     cmp byte[r12], 95                                   ; Verifica si hay un espacio libre
-    je movimiento_posible
+    je finalizar_verificacion_mov_oficial               ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
 
     cmp byte[r12], 32                                   ; Verifica si está fuera de los movimientos permitidos pero dentro del tablero (Los espacios en las esquinas del tablero)
     je continuar_verificacion_mov_oficial
@@ -74,53 +91,54 @@ loop_verificar_mov_oficial:
     je captura_posible
 
 continuar_verificacion_mov_oficial:
-    cmp byte[movimiento_valido], 1                      ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
-    je finalizar_verificacion_mov_oficial
-
     inc r11                                             ; Mueve el puntero del vector_desplazamiento a la siguietne posición
     loop loop_verificar_mov_oficial                     ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
-    mov rdi, mensaje_verificacion_mov_oficial
-    call_function puts                                  ; Imprime por pantalla que el oficial no tiene movimientos válidos
+
+    mov rdi, sin_movimientos_validos
+    call_function puts                                  ; Imprime por pantalla que el oficial no tiene movimientos válidos, ya que iteró con todos los desplazamientos y no tiene movimientos válidos
 
 
     ; (Faltaría tener en cuenta, en otra función podría ser, que si ambos oficiales no pueden moverse, el juego termina y ganan los soldados)
 
 finalizar_verificacion_mov_oficial:
+    call_function movimiento_posible
     ret
 
 esta_borde_lateral_tablero:
     xor rdx, rdx
     xor rax, rax
-    mov ax, r10w                                    ; Copia la posicion del oficial a AX
+    mov ax, r10w                                    ; Copia la posicion de la ficha a AX
     xor rbx, rbx
     mov bx, 7
     idiv bx                                           
+    
+    call_function verificar_desplazamientos_borde
+
+    ret
+
+verificar_desplazamientos_borde:
     cmp dx, 0                                       ; Si el resto es 0, se encuentra en el borde izquierdo del tablero
-    je verificar_desplazamiento_izquierda
+    call_function verificar_movimiento_soldado_90   ; Se usa esta función para utilizar los 3 posibles desplazamientos y verificar si se mueve hacia el borde derecho
 
     cmp dx, 6                                       ; Si el resto es 6, se encuentra en el borde derecho del tablero
-    je verificar_desplazamiento_derecha
+    call_function verificar_movimiento_soldado_270  ; Se usa esta función para utilizar los 3 posibles desplazamientos y verificar si se mueve hacia el borde izquierdo
+
+    mov dl, byte[direccion_posible_1]
+    cmp byte[r11], dl                       
+    je movimiento_no_posible
+
+    mov dl, byte[direccion_posible_2]
+    cmp byte[r11], dl                                   
+    je movimiento_no_posible
+
+    mov dl, byte[direccion_posible_3]
+    cmp byte[r11], dl                                   
+    je movimiento_no_posible
 
     ret
 
-verificar_desplazamiento_derecha:
-    cmp byte[r11], -6                                   ; Diagonal superior derecha
-    je continuar_verificacion_mov_oficial
-    cmp byte[r11], 1                                    ; Posición del medio derecha
-    je continuar_verificacion_mov_oficial
-    cmp byte[r11], 8                                    ; Diagonal inferior derecha
-    je continuar_verificacion_mov_oficial
-
-    ret
-
-verificar_desplazamiento_izquierda:
-    cmp byte[r11], -8                                   ; Diagonal superior izquierda
-    je continuar_verificacion_mov_oficial
-    cmp byte[r11], -1                                   ; Posición del medio izquierda
-    je continuar_verificacion_mov_oficial
-    cmp byte[r11], 6                                    ; Diagonal inferior izquierda
-    je continuar_verificacion_mov_oficial
-
+movimiento_no_posible:
+    mov byte[es_movimiento_posible], 0
     ret
 
 esta_borde_superior_inferior_tablero:
@@ -131,20 +149,17 @@ esta_borde_superior_inferior_tablero:
     add rax, rdx                                            ; Suma a la posición del oficial el desplazamiento
     lea rbx, [board]
     cmp rax, rbx                                            ; Verifica si la posición del desplazamiento se sale del rango del tablero
-    jl movimiento_fuera_tablero
+    jl movimiento_no_posible
 
     add rbx, 48
     cmp rax, rbx
-    jg movimiento_fuera_tablero
+    jg movimiento_no_posible
 
-    ret
-
-movimiento_fuera_tablero:
-    jmp continuar_verificacion_mov_oficial
+    ret    
 
 movimiento_posible:
     mov byte[movimiento_valido], 1
-    jmp continuar_verificacion_mov_oficial
+    ret
 
 captura_posible:
     xor rdx, rdx
@@ -166,19 +181,222 @@ captura_posible:
     add r12, r10
     
     mov al, [ficha_soldado]
-    cmp byte[r12], al                                    ; Verifica si hay un soldado en la posición
+    cmp byte[r12], al                                       ; Verifica si hay un soldado en la posición
     je continuar_verificacion_mov_oficial
 
     cmp byte[r12], 32                                       ; Verifica si hay un casillero inválido o " " en la posición
     je continuar_verificacion_mov_oficial
 
     mov al, [ficha_oficial]
-    cmp byte[r12], al                             ; Verifica si hay otro oficial en la posición
+    cmp byte[r12], al                                       ; Verifica si hay otro oficial en la posición
     je continuar_verificacion_mov_oficial               
 
-    ; Si llega hasta este punto, la captura es posible
+    ; Si llega hasta este punto, la captura es posible y es un movimiento válido, por lo cual termina la verificación
+    jmp finalizar_verificacion_mov_oficial
+
+
+verificar_movimiento_soldado:
+    mov byte[movimiento_valido], 0              ; Establece que no tiene movimientos válidos al inicio
+    call_function verificar_rotacion_tablero
+
+    mov byte[es_movimiento_posible], 1          ; Si es true, verifica si es un movimiento válido. Si es false, salta a la siguiente iteración o termina el ciclo
+    mov r10, [ficha_a_mover]                    ; Carga la posición de la ficha a mover
+    sub r10, 1                                  ; Pasa a 0-index
+    lea r12, [board]                            ; Carga el tablero en R12
+    add r12, r10                                ; Se posiciona el puntero del tablero en la posición de la ficha 
+
+    lea r11, [direccion_posible_1]
+    call_function esta_borde_superior_inferior_tablero         ; Verifican si se sale del borde superior
+
+    lea r11, [direccion_posible_3]
+    call_function esta_borde_superior_inferior_tablero         ; Verifican si se sale del borde inferior
+   
+    cmp byte[es_movimiento_posible], 1
+    jne soldado_sin_movimientos_validos         ; No hay movimientos posibles ya que el soldado se encuentra en el borde inferior o superior del tablero.
+
+    cmp r10b, [casilla_roja_1]
+    je verificar_movimiento_soldado_costado     ; Verifica si el soldado se puede mover a los costados (solo en el caso de estar en una casilla roja)
+    cmp r10b, [casilla_roja_2]
+    je verificar_movimiento_soldado_costado
+    cmp r10b, [casilla_roja_3]
+    je verificar_movimiento_soldado_costado
+    cmp r10b, [casilla_roja_4]
+    je verificar_movimiento_soldado_costado
+
+    mov r13, r12
+    add r13b, [direccion_posible_1]          
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+
+    mov r13, r12
+    add r13b, [direccion_posible_2]                
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+
+    mov r13, r12
+    add r13b, [direccion_posible_3]               
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+
+    ; No tiene movimientos válidos
+soldado_sin_movimientos_validos:
+    mov byte[movimiento_valido], 0
+    mov rdi, sin_movimientos_validos
+    call_function puts
+
     ret
 
+finalizar_verificacion_movimiento_soldado:
+    ret
+
+error_orientacion_tablero:
+    mov rdi, mensaje_error_orientacion_tablero
+    call_function puts
+    jmp finalizar_verificacion_movimiento_soldado
+
+movimiento_soldado_posible:
+    mov byte[movimiento_valido], 1
+    jmp finalizar_verificacion_movimiento_soldado
+    ret
+
+verificar_movimiento_soldado_costado:
+    cmp r10b, [casilla_roja_1]               ; La ficha está en una casilla roja y en el borde
+    je verificar_movimiento_soldado_costado_borde
+
+    cmp r10b, [casilla_roja_4]               ; La ficha está en una casilla roja y en el borde
+    je verificar_movimiento_soldado_costado_borde
+
+    ; Si no está en el borde
+    mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
+    add r13b, [direccion_posible_costado_1]      ; Primer posible desplazamiento
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+
+    mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
+    add r13b, [direccion_posible_costado_2]      ; Segundo posible desplazamiento
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+
+
+verificar_movimiento_soldado_costado_borde:
+    xor rdx, rdx
+    xor rax, rax
+    mov ax, [orientacion_tablero]           
+    xor rbx, rbx 
+    mov bx, 2                                   ; División para ver si la orientación es par o impar
+    div bx
+
+    cmp dx, 1                                   ; Si la orientación es 0° o 180°, el resto es 1. Si la orientación es 90° o 270°, el resto es 0
+    je verificar_movimiento_soldado_costado_horizontal_borde
+    jne verificar_movimiento_soldado_costado_vertical_borde
+
+verificar_movimiento_soldado_costado_horizontal_borde:
+    cmp r10b, [casilla_roja_1]
+    je esta_casilla_roja_1_horizontal
+
+    ; Si no está en la casilla roja 1, entonces está en la casilla roja 4 
+    mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
+    add r13, [direccion_posible_costado_2]
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+    jne soldado_sin_movimientos_validos
+
+esta_casilla_roja_1_horizontal:
+    mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
+    add r13, [direccion_posible_costado_1]
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+    jne soldado_sin_movimientos_validos
+
+verificar_movimiento_soldado_costado_vertical_borde:
+    cmp r10b, [casilla_roja_1]
+    je esta_casilla_roja_1_vertical
+
+    ; Si no está en la casilla roja 1, entonces está en la casilla roja 4 
+    mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
+    add r13, [direccion_posible_costado_1]
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+    jne soldado_sin_movimientos_validos
+
+esta_casilla_roja_1_vertical:
+    mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
+    add r13, [direccion_posible_costado_2]
+    cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
+    je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+    jne soldado_sin_movimientos_validos
+
+
+verificar_rotacion_tablero:
+    cmp byte[orientacion_tablero], 1            ; Tablero rotado 0 grados
+    jl error_orientacion_tablero
+    je verificar_movimiento_soldado_0           ; El valor de la orientación del tablero es incorrecta
+
+    cmp byte[orientacion_tablero], 2            ; Tablero rotado 90 grados
+    je verificar_movimiento_soldado_90
+
+    cmp byte[orientacion_tablero], 3            ; Tablero rotado 180 grados
+    je verificar_movimiento_soldado_180
+
+    cmp byte[orientacion_tablero], 4            ; Tablero rotado 270 grados
+    je verificar_movimiento_soldado_270
+    jg error_orientacion_tablero                ; El valor de la orientación del tablero es incorrecta
+    ret
+
+verificar_movimiento_soldado_0:
+    mov byte[casilla_roja_1], 28
+    mov byte[casilla_roja_2], 29
+    mov byte[casilla_roja_3], 33
+    mov byte[casilla_roja_4], 34
+    mov byte[direccion_posible_1], 6
+    mov byte[direccion_posible_2], 7
+    mov byte[direccion_posible_3], 8
+    jmp direccion_posible_costado_horizontal
+    ret
+
+verificar_movimiento_soldado_180:
+    mov byte[casilla_roja_1], 14
+    mov byte[casilla_roja_2], 15
+    mov byte[casilla_roja_3], 19
+    mov byte[casilla_roja_4], 20
+    mov byte[direccion_posible_1], -8
+    mov byte[direccion_posible_2], -7
+    mov byte[direccion_posible_3], -6
+    jmp direccion_posible_costado_horizontal
+    ret
+
+direccion_posible_costado_horizontal:
+    mov byte[direccion_posible_costado_1], -1
+    mov byte[direccion_posible_costado_2], 1
+    ret
+
+
+verificar_movimiento_soldado_90:
+    mov byte[casilla_roja_1], 4
+    mov byte[casilla_roja_2], 11
+    mov byte[casilla_roja_3], 39
+    mov byte[casilla_roja_4], 46
+    mov byte[direccion_posible_1], -6
+    mov byte[direccion_posible_2], 1
+    mov byte[direccion_posible_3], 8
+    jmp direccion_posible_costado_vertical
+    ret
+
+verificar_movimiento_soldado_270:
+    mov byte[casilla_roja_1], 2
+    mov byte[casilla_roja_2], 9
+    mov byte[casilla_roja_3], 37
+    mov byte[casilla_roja_4], 44
+    mov byte[direccion_posible_1], -8
+    mov byte[direccion_posible_2], -1
+    mov byte[direccion_posible_3], 6
+    jmp direccion_posible_costado_vertical
+    ret
+
+direccion_posible_costado_vertical:
+    mov byte[direccion_posible_costado_1], -7
+    mov byte[direccion_posible_costado_2], 7
+    ret
 
 
 validar_movimiento_oficial:

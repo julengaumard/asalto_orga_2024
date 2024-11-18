@@ -18,6 +18,7 @@ extern clear_screen
 extern personalizar_fichas
 extern reemplazar_simbolos
 extern getchar
+extern verificar_movimiento_soldado
 
 %macro call_function 1
 sub     rsp,8
@@ -188,7 +189,8 @@ ingrese_nuevamente:
     jne no_es_oficial
     call_function verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial (Falta hacer que si no hay movimientos válidos, no pueda elegir una casilla destino)
 
-    no_es_oficial:
+no_es_oficial:
+    call_function verificar_movimiento_soldado
 
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
      
