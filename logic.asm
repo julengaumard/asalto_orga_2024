@@ -31,8 +31,16 @@ section .data
     global soldado_diagonalinfizq
     global soldado_diagonalinfder
     global movimiento_realizado
+    global oficial_arriba
+    global oficial_abajo 
+    global oficial_derecha 
+    global oficial_izquierda
+    global oficial_diagonalsupizq
+    global oficial_diagonalsupder
+    global oficial_diagonalinfizq
+    global oficial_diagonalinfder
     txtdestino db 'Ingrese la casilla de destino: ',0
-    destino_invalido db  'La posicion de destino no es valida',0
+    destino_invalido db  10, 'La posicion de destino no es valida',10, 'Ingrese nuevamente la ficha que quiere mover :',0
     sin_movimientos_validos db 10, "La ficha seleccionada no posee movimientos válidos", 10, 0
     mensaje_error_orientacion_tablero db 10, "La orientación del tablero no es válida.", 10, 0
     movimiento_valido db 0
@@ -47,6 +55,14 @@ section .data
     soldado_diagonalsupder dq 0
     soldado_diagonalinfizq dq 0
     soldado_diagonalinfder dq 0
+    oficial_arriba dq 0
+    oficial_abajo dq 0
+    oficial_derecha dq 0
+    oficial_izquierda dq 0
+    oficial_diagonalsupizq dq 0
+    oficial_diagonalsupder dq 0
+    oficial_diagonalinfizq dq 0
+    oficial_diagonalinfder dq 0
 
 section .bss
     casilla_roja_1  resb    1
@@ -421,7 +437,7 @@ validar_movimiento_oficial:
     lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
     mov al, byte [r8]            ; Cargar el valor en la posición de destino
 
-    cmp al, 95                   ; Comprobar si la posición contiene '95' (vacía)
+    cmp al, 95                  
     jne invalido_movimiento    
 
     mov byte[movimiento_realizado],0
@@ -436,21 +452,21 @@ validar_movimiento_oficial:
 
     ; Verificar si es un movimiento normal (una casilla en cualquier dirección)
     cmp r12, -7
-    je mov_valido
+    je o_abajo
     cmp r12, 7
-    je mov_valido
+    je o_arriba
     cmp r12, -1
-    je mov_valido
+    je o_izquierda
     cmp r12, 1
-    je mov_valido
-    cmp r12, -8                    ; Diagonal superior izquierda
-    je mov_valido
-    cmp r12, -6                    ; Diagonal superior derecha
-    je mov_valido
-    cmp r12, 6                     ; Diagonal inferior izquierda
-    je mov_valido
-    cmp r12, 8                     ; Diagonal inferior derecha
-    je mov_valido
+    je o_derecha
+    cmp r12, -8                    
+    je o_diagonal_infder
+    cmp r12, -6                    
+    je o_diagonal_infizq
+    cmp r12, 6                    
+    je o_diagonal_supder
+    cmp r12, 8                     
+    je o_diagonal_supizq
 
     ; Verificar si es una captura (dos casillas en cualquier dirección o diagonal)
     cmp r12, -14                   ; Arriba (2 casillas)
@@ -494,6 +510,37 @@ verificar_salto:
     jmp mov_valido
 
 
+o_abajo:
+    add qword [oficial_abajo], 1
+    jmp mov_valido
+
+o_arriba:
+    add qword [oficial_arriba], 1
+    jmp mov_valido
+
+o_diagonal_supizq:
+    add qword [oficial_diagonalsupizq], 1
+    jmp mov_valido
+
+o_diagonal_supder:
+    add qword [oficial_diagonalsupder], 1
+    jmp mov_valido
+
+o_diagonal_infizq:
+    add qword [oficial_diagonalinfizq], 1
+    jmp mov_valido
+
+o_diagonal_infder:
+    add qword [oficial_diagonalinfder], 1
+    jmp mov_valido
+
+o_derecha:
+    add qword [oficial_derecha], 1
+    jmp mov_valido
+
+o_izquierda:
+    add qword [oficial_izquierda], 1
+    jmp mov_valido
     
     
 validar_movimiento_soldado:
@@ -544,9 +591,9 @@ orientacion1:
     cmp r12, -7                    ; Hacia abajo
     je s_abajo
     cmp r12, -8                    ; Diagonal superior izquierda
-    je s_diagonal_infder
-    cmp r12, -6                    ; Diagonal superior derecha
     je s_diagonal_infizq
+    cmp r12, -6                    ; Diagonal superior derecha
+    je s_diagonal_infder
 
     jmp invalido_movimiento
 
@@ -668,3 +715,4 @@ s_derecha:
 s_izquierda:
     add qword [soldado_izquierda], 1
     jmp mov_valido
+    
