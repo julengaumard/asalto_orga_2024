@@ -195,9 +195,11 @@ ingrese_nuevamente:
 
     ; Modificar la matris y evaluar si hay que eliminar un valor del enemigo
     ;Cambiar variable de turno
-    cmp byte [turnoActual], 'X'
+    mov al, [ficha_soldado]
+    cmp byte [turnoActual], al
     je cambiar_soldado
-    cmp byte [turnoActual], 'O'
+    mov al, [ficha_oficial]
+    cmp byte [turnoActual], al
     je cambiar_oficial
     ret
 
@@ -207,15 +209,17 @@ cambiar_soldado:
     call validar_movimiento_soldado
     cmp byte [movimiento_realizado],0
     jne game
-    mov byte [turnoActual], 'O'
+    mov al, [ficha_oficial]
+    mov byte [turnoActual], al; Cambiar turno a los oficiales
     jmp game
 
 cambiar_oficial:
     call_function pedir_posicion
     call validar_movimiento_oficial
     cmp byte [movimiento_realizado],1
-     jmp game
-    mov byte [turnoActual], 'X' ; Cambiar turno a los soldados
+    jmp game
+    mov al, [ficha_soldado]
+    mov byte [turnoActual], al; Cambiar turno a los soldados
     jmp game
 
 
