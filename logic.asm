@@ -11,7 +11,8 @@ extern ingrese_nuevamente
 
 extern posicion_destino
 extern orientacion_tablero
-
+extern ficha_soldado
+extern ficha_oficial
 
 %macro call_function 1
 sub     rsp,8
@@ -64,11 +65,12 @@ loop_verificar_mov_oficial:
     cmp byte[r12], 32                                   ; Verifica si está fuera de los movimientos permitidos pero dentro del tablero (Los espacios en las esquinas del tablero)
     je continuar_verificacion_mov_oficial
 
-    cmp byte[r12], 79
+    mov al, [ficha_oficial]
+    cmp byte[r12], al
     je continuar_verificacion_mov_oficial               ; Verifica si hay otro oficial en la posición
 
-    ; (Debería compararse con una variable que contenga la ficha de los soldados)
-    cmp byte[r12], 88                                   ; Verifica si hay un soldado en la posición y si se puede capturar 
+    mov al, [ficha_soldado] 
+    cmp byte[r12], al                                  ; Verifica si hay un soldado en la posición y si se puede capturar 
     je captura_posible
 
 continuar_verificacion_mov_oficial:
@@ -162,14 +164,16 @@ captura_posible:
 
     lea r12, [board]
     add r12, r10
-    ; (Debería compararse con una variable que contenga la ficha de los soldados)
-    cmp byte[r12], 88                                       ; Verifica si hay un soldado en la posición
+    
+    mov al, [ficha_soldado]
+    cmp byte[r12], al                                    ; Verifica si hay un soldado en la posición
     je continuar_verificacion_mov_oficial
 
     cmp byte[r12], 32                                       ; Verifica si hay un casillero inválido o " " en la posición
     je continuar_verificacion_mov_oficial
 
-    cmp byte[r12], 79                                       ; Verifica si hay otro oficial en la posición
+    mov al, [ficha_oficial]
+    cmp byte[r12], al                             ; Verifica si hay otro oficial en la posición
     je continuar_verificacion_mov_oficial               
 
     ; Si llega hasta este punto, la captura es posible
@@ -232,8 +236,9 @@ verificar_salto:
     mov r13, r10                    ; r13 = posición inicial
     add r13, r11                    ; Suma posición inicial + destino
     shr r13, 1                      ; Divide entre 2 para obtener posición intermedia
-    lea r8, [board + r13]           ; Dirección de la posición intermedia en el tablero
-    cmp byte [r8], 88               ; Comprobar si es un soldado ('X')
+    lea r8, [board + r13]   
+    mov al, [ficha_soldado]        ; Dirección de la posición intermedia en el tablero
+    cmp byte [r8], al          ; Comprobar si es un soldado ('X')
     jne invalido_movimiento
 
     ; Verificar que la posición de destino esté vacía
