@@ -17,6 +17,7 @@ extern comprobar_fin_juego
 extern clear_screen
 extern personalizar_fichas
 extern reemplazar_simbolos
+extern getchar
 
 %macro call_function 1
 sub     rsp,8
@@ -154,6 +155,8 @@ ingrese_nuevamente:
     mov rdi, formatoTurno
     mov rsi, ficha_a_mover
     call_function    scanf
+    cmp    rax,0
+    je     posicion_no_valida
 
     ; Verifica si la entrada es '0' para guardar la partida
     mov al, [ficha_a_mover]
@@ -291,6 +294,12 @@ exit:
 
    
 posicion_no_valida:
+    sub     rsp, 8
+clear_loop:
+    call    getchar
+    cmp     al, 10
+    jne     clear_loop
+    add     rsp, 8
     mov rdi, posicion_invalida 
     call_function    printf
     jmp ingrese_nuevamente  
