@@ -1,6 +1,9 @@
 extern board
 extern turnoActual
 extern menu
+extern ficha_soldado
+extern ficha_oficial
+extern orientacion_tablero
 
 section .data
     archivoGuardado    db 'saved_game.bin', 0
@@ -34,6 +37,7 @@ save_game:
     ; Guarda el descriptor de archivo en fileHandle
     mov [fileHandle], rax
 
+   
     ; Escribimos el turno actual (1 byte)
     mov rdi, [fileHandle]           ; Descriptor de archivo
     mov rsi, turnoActual            ; Turno actual
@@ -44,6 +48,24 @@ save_game:
     mov rdi, [fileHandle]           ; Descriptor de archivo
     mov rsi, board                  ; Dirección del tablero
     mov rdx, 49                     ; Tamaño del tablero
+    call write
+
+    ; Escribimos el oficial (1 byte)
+    mov rdi, [fileHandle]           
+    mov rsi, ficha_oficial           
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    ; Escribimos el soldado(1 byte)
+    mov rdi, [fileHandle]           
+    mov rsi, ficha_soldado            
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    ; Escribimos la orientacion (1 byte)
+    mov rdi, [fileHandle]           
+    mov rsi, orientacion_tablero    ; orientacion
+    mov rdx, 1                      ; Tamaño: 1 byte
     call write
 
     ; Cierra el archivo
@@ -85,16 +107,34 @@ load_game:
     ; Guarda el descriptor de archivo en fileDescriptor
     mov [fileDescriptor], rax
 
-    ; Cargamos el turno actual (1 byte)
-    mov rdi, [fileDescriptor]   ; Descriptor de archivo
-    mov rsi, turnoActual        ; Turno actual
-    mov rdx, 1                  ; Tamaño: 1 byte
+     ; Cargamos el turno actual (1 byte)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, turnoActual              ; Turno actual
+    mov rdx, 1                        ; Tamaño: 1 byte
     call read
 
     ; Cargamos el tablero completo (49 bytes)
     mov rdi, [fileDescriptor]
-    mov rsi, board              ; Dirección del tablero
-    mov rdx, 49                 ; Tamaño del tablero
+    mov rsi, board                    ; Dirección del tablero
+    mov rdx, 49                       ; Tamaño del tablero
+    call read
+
+    ; Cargamos el oficial (1 byte)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, ficha_oficial              ; Turno actual
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    ; Cargamos el soldado (1 byte)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, ficha_soldado              ; Turno actual
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    ; Cargamos la orientacion (1 byte)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, orientacion_tablero              ; Turno actual
+    mov rdx, 1                        ; Tamaño: 1 byte
     call read
 
     ; Cerramos el archivo
@@ -102,6 +142,7 @@ load_game:
     call close
     add rsp, 8
     ret
+
 
 no_saved_game:
     mov rdi, no_guardado
