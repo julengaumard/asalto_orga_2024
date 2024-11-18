@@ -6,6 +6,7 @@ extern ficha_oficial
 extern board
 extern turnoActual
 extern exit
+extern game
 
 %macro printCadena 1
     mov rdi,%1
@@ -25,12 +26,15 @@ section .data
     global reemplazar_simbolos
     global reemplazar_soldados
     global reemplazar_oficiales
+    global clear_input_buffer
     texto_personalizar db 'Desea personalizar las fichas? (s/n): ', 0
     texto_ficha_soldados db 'Ingrese el caracter para las fichas de los soldados: ', 0
     texto_ficha_oficiales db 'Ingrese el caracter para las fichas de los oficiales: ', 0
     inputFormat db "%c", 0
     mensaje_personalizando db 'Personalizando fichas', 10, 0
     mensaje_no_personalizando db 'No se personalizarán las fichas', 10, 0
+    texto_quien_comienza db 'Quien comienza? (1: Soldados, 2: Oficiales): ', 0
+    comienza db 0
 
 section .bss
     respuesta_personalizar resb 1
@@ -40,6 +44,7 @@ global personalizar_fichas
 global reemplazar_simbolos
 global reemplazar_soldados
 global reemplazar_oficiales
+global quien_comienza
 
 personalizar_fichas:
     printCadena texto_personalizar
@@ -133,3 +138,21 @@ siguiente_elemento_oficiales:
     loop modificar_loop_oficiales       ; Si no hemos recorrido todos los elementos, continuar el loop
 
     ret
+
+quien_comienza:
+    ; Solicitar al usuario que elija quién comienza
+    mov rdi, texto_quien_comienza
+    call_function printf
+    call_function clear_input_buffer
+    call_function getchar
+    mov [comienza], al
+    cmp byte[comienza], "1"
+    je game
+    cmp byte[comienza], "2"
+    je cambiar_turno
+    ret
+
+cambiar_turno:
+    mov al, [ficha_oficial]
+    mov byte [turnoActual], al ; Cambiar turno a los oficiales
+    jmp game

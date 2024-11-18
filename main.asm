@@ -19,6 +19,8 @@ extern personalizar_fichas
 extern reemplazar_simbolos
 extern getchar
 extern verificar_movimiento_soldado
+extern clear_input_buffer
+extern quien_comienza
 
 %macro call_function 1
 sub     rsp,8
@@ -87,6 +89,7 @@ section .data
     capturas          dq   0
     orientacion_tablero db  1
 
+
     ficha_soldado       db  88
     ficha_oficial       db  79
     ; Tomo como orientacion 1 fortaleza abajo, orientacion 2 fortaleza a la derecha, orientacion 3 arriba,orientacion 4 izquierda
@@ -105,6 +108,7 @@ section .text
     global mov_valido
     global ingrese_nuevamente
     global reiniciar_juego
+    global game
 
 main:
 
@@ -137,6 +141,7 @@ iniciar_juego:
 crear_juego_personalizado:
     call_function configurar_tablero
     call_function personalizar_fichas
+    call_function quien_comienza
     jmp game
 
 game:
@@ -370,7 +375,5 @@ copiar_tablero:
     mov rcx, 49  ; Tamaño del tablero (7x7)
     rep movsb ; Copiar el tablero rotado al tablero principal
     ret
-
-
 
 
