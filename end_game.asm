@@ -41,23 +41,23 @@ comprobar_fin_juego:
     cmp al, [ficha_soldado]
     jne continue
 
+    mov al, [board + 39]
+    cmp al, [ficha_soldado]
+    jne continue
     mov al, [board + 38]
     cmp al, [ficha_soldado]
     jne continue
     mov al, [board + 37]
     cmp al, [ficha_soldado]
     jne continue
-    mov al, [board + 36]
+
+    mov al, [board + 32]
     cmp al, [ficha_soldado]
     jne continue
-
     mov al, [board + 31]
     cmp al, [ficha_soldado]
     jne continue
     mov al, [board + 30]
-    cmp al, [ficha_soldado]
-    jne continue
-    mov al, [board + 29]
     cmp al, [ficha_soldado]
     jne continue
 

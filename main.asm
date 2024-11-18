@@ -148,7 +148,7 @@ ingrese_nuevamente:
 
     ; Verifica si la entrada es '0' para guardar la partida
     mov al, [ficha_a_mover]
-    cmp al, 0        ; Compara si la entrada es 0
+    cmp al, 1        ; Compara si la entrada es 0
     jl exit
     je guardar_partida ; Si es 0, guarda la partida
 
