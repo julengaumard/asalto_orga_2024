@@ -4,6 +4,14 @@ extern ficha_oficial
 extern printf
 extern exit
 extern capturas
+extern soldado_arriba
+extern soldado_abajo
+extern soldado_derecha
+extern soldado_izquierda
+extern soldado_diagonalsupizq
+extern soldado_diagonalsupder
+extern soldado_diagonalinfizq
+extern soldado_diagonalinfder
 
 %macro call_function 1
 sub     rsp,8
@@ -23,6 +31,8 @@ section .data
     motivo_oficial          db  "Los oficiales capturaron suficientes soldados.",0
 
     estadisiticas_texto     db  'Estadisticas:', 10, '~ Capturas: %i', 10, 0
+    movimientos_soldado_texto db '~ Movimientos soldados: Arriba %i', 10, 'Abajo %i', 10, 'Derecha %i', 10, 'Izquierda %i',10, 0
+    diagonales_texto       db 'Diagonal superior derecha %i izquierda %i',10 ,'Diagonal inferior derecha %i izquierda %i',10,  0
 
 section .text
     global comprobar_fin_juego
@@ -85,5 +95,16 @@ gano_oficial:
     mov rdi, estadisiticas_texto
     mov rsi, [capturas]
     call_function printf
-
+    mov rdi, movimientos_soldado_texto
+    mov rsi, [soldado_arriba]
+    mov rdx, [soldado_abajo]
+    mov rcx, [soldado_derecha]
+    mov rcx, [soldado_izquierda]
+    call_function printf
+    mov rdi, diagonales_texto
+    mov rsi, [soldado_diagonalsupder]
+    mov rdx, [soldado_diagonalsupizq]
+    mov rcx, [soldado_diagonalinfder]
+    mov rcx, [soldado_diagonalinfizq]
+    call_function printf
     jmp exit
