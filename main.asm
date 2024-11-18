@@ -14,7 +14,7 @@ extern validar_movimiento_soldado
 extern verificar_salto_y_eliminar_oficial
 extern seleccionar_orientacion
 extern comprobar_fin_juego
-
+extern clear_screen
 
 %macro call_function 1
 sub     rsp,8
@@ -128,6 +128,8 @@ iniciar_juego:
     jmp game
 
 game:
+    call_function clear_screen
+
     lea rdi, [board]
     call_function    print_tablero_new   ; Imprime el tablero 
 

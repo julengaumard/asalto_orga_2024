@@ -2,11 +2,18 @@ extern printf
 extern scanf 
 extern getchar
 extern orientacion_tablero
+extern system   
 
 %macro printCadena 1
 mov rdi,%1
 sub     rsp,8
 call    printf
+add     rsp,8
+%endmacro
+
+%macro call_function 1
+sub     rsp,8
+call    %1
 add     rsp,8
 %endmacro
  
@@ -56,6 +63,8 @@ section .data
     formato_nums_espacio    db  '  %d ',0
     formato_nums_no_num     db  '    ',0
     salto_linea             db  10,0
+
+    clear_cmd db "clear", 0
     
  
 section .bss
@@ -66,8 +75,12 @@ section .text
     global print_menu 
     global print_tablero_new
     global seleccionar_orientacion
+    global clear_screen
 
 print_menu:
+    
+    call_function clear_screen
+
     printCadena titulo
     printCadena menu
     printCadena opcion_text
@@ -211,4 +224,11 @@ seleccionar_orientacion:
     cmp     byte[orientacion_tablero], 1
     jl      error
     mov ah, [orientacion_tablero]
+    ret
+
+clear_screen:
+    lea rdi, [clear_cmd]      ; Load the address of the clear command
+    sub     rsp,8
+    call    system
+    add     rsp,8
     ret
