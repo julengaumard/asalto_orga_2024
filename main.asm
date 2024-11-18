@@ -96,6 +96,7 @@ section .bss
     global posicion_destino
     ficha_a_mover    resq    1
     posicion_destino resq    1
+    global exit
    
 
 

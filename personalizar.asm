@@ -5,6 +5,7 @@ extern ficha_soldado
 extern ficha_oficial
 extern board
 extern turnoActual
+extern exit
 
 %macro printCadena 1
     mov rdi,%1
@@ -44,6 +45,8 @@ personalizar_fichas:
     printCadena texto_personalizar
     call clear_input_buffer  ; Limpiar el buffer de entrada
     call getchar
+    cmp al, '1'
+    jl exit
     mov [respuesta_personalizar], al
     ; Asegúrate de que la entrada se haya leído correctamente
     mov al, [respuesta_personalizar]
