@@ -23,6 +23,8 @@ extern clear_input_buffer
 extern quien_comienza
 extern es_movimiento_valido
 extern hay_captura_posible
+extern es_captura
+extern comprobar_captura
 
 %macro call_function 1
 sub     rsp,8
@@ -111,6 +113,7 @@ section .text
     global ingrese_nuevamente
     global reiniciar_juego
     global game
+    global mover
 
 main:
 
@@ -253,6 +256,7 @@ pedir_posicion:
     ret
 
 mover:
+    mov byte[es_captura], 0
     mov r9, [posicion_destino]   ; Cargar la posición de destino
     sub r9, 1                    ; Ajustar a índice 0
     lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
@@ -278,11 +282,19 @@ ret
 
 
 
-
 mov_valido:
-    ; Si el movimiento es válido, puedes continuar llamando a la función `mover`
+    mov al, [ficha_oficial]
+    cmp [turnoActual], al 
+    je es_oficial
+    call_function mover ; Si el movimiento es válido, puedes continuar llamando a la función `mover`
+    ret
+
+es_oficial:
+    cmp byte[hay_captura_posible],1
+    je comprobar_captura    
     call_function mover
     ret
+
 
 
 fuera_de_tablero:

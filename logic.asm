@@ -8,6 +8,7 @@ extern formatoTurno
 extern ficha_a_mover
 extern mov_valido
 extern ingrese_nuevamente
+extern mover
 
 extern posicion_destino
 extern orientacion_tablero
@@ -41,6 +42,7 @@ section .data
     global oficial_diagonalinfder
     global es_movimiento_valido
     global hay_captura_posible
+    global es_captura
     txtdestino db 'Ingrese la casilla de destino: ',0
     destino_invalido db  10, 'La posicion de destino no es valida',10, 'Ingrese nuevamente la ficha que quiere mover :',0
     sin_movimientos_validos db 10, "La ficha seleccionada no posee movimientos válidos", 10, 0
@@ -51,6 +53,7 @@ section .data
     es_movimiento_posible db 0
     es_movimiento_valido db 0
     hay_captura_posible db 0
+    es_captura db 0
     soldado_arriba dq 0
     soldado_abajo dq 0
     soldado_derecha dq 0
@@ -87,13 +90,15 @@ global validar_movimiento_soldado
 global verificar_salto_y_eliminar_oficial
 global verificar_mov_oficial 
 global verificar_movimiento_soldado
+global comprobar_captura
 
 
 ; Si el movimiento es posible, establece true en es_movimiento_valido
 verificar_mov_oficial:
     mov byte[es_movimiento_valido], 0                      ; Establece que es_movimiento_valido es false
     lea r11, [vector_desplazamientos]                   ; Carga el puntero al primer elemento del vector_desplazamiento
-    mov cx, 8                                           ; Carga 8 en CX para utilizar un loop
+    mov cx, 16                                       ; Espacio para hacer todos los chequeos en 8 direcciones  
+    xor r14, r14                                       ; Inicializa contador de iteraciones  
 
 ; Verifica si los alrededores del oficial están libres o si hay un soldado y se puede capturar
 loop_verificar_mov_oficial:
@@ -101,39 +106,53 @@ loop_verificar_mov_oficial:
     mov r10, [ficha_a_mover]                            ; Posición actual de la ficha a mover
     sub r10, 1                                          ; Se ajusta a 0-index
     lea r12, [board]                                    ; Guarda el puntero al primer elemento del tablero
-    add r12, r10                                        ; El puntero del tablero apunta a la posición de la ficha a mover
+    add r12, r10                                        ; El puntero del tablero apunta a la posición de la ficha a mover             ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
 
-    call_function esta_borde_lateral_tablero                 ; Verifica si la ficha se encuentra en los bordes laterales del tablero
-    call_function esta_borde_superior_inferior_tablero       ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
+    call esta_borde_lateral_tablero                 ; Verifica si la ficha se encuentra en los bordes laterales del tablero
+    call esta_borde_superior_inferior_tablero 
 
-    cmp byte[es_movimiento_posible], 1
+    cmp byte [es_movimiento_posible], 1
     jne continuar_verificacion_mov_oficial
 
     mov dl, [r11]
     movsx rdx, dl
-    add r12, rdx                                        ; Calcula el desplazamiento respecto a la posición de la ficha
-    cmp byte[r12], 95                                   ; Verifica si hay un espacio libre
-    je finalizar_verificacion_mov_oficial               ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
-
-    cmp byte[r12], 32                                   ; Verifica si está fuera de los movimientos permitidos pero dentro del tablero (Los espacios en las esquinas del tablero)
+    lea r13, [r12 + rdx]        ; Calcula la posición adyacente   
+    mov r15, r13
+    add r15, rdx                ; Almacena adyacente del adyacente (en la direccion apuntada por r11)                  
+            
+    mov al, [ficha_soldado]
+    cmp byte [r13], al                                      ; Verifica si hay un soldado en la posición y si se puede capturar
+    je captura_posible  ;chequea 8 veces (1 en cada direccion) antes de saltar a la siguiente iteración
+    cmp r14, 8
+    jl continuar_verificacion_mov_oficial
+    jmp chequear_vacio
+                
+                  ; Carga el puntero al primer elemento del vector_desplazamiento
+    cmp byte [r13], 32                                      ; Verifica si está fuera de los movimientos permitidos pero dentro del tablero (Los espacios en las esquinas del tablero)
     je continuar_verificacion_mov_oficial
 
     mov al, [ficha_oficial]
-    cmp byte[r12], al
-    je continuar_verificacion_mov_oficial               ; Verifica si hay otro oficial en la posición
+    cmp byte [r13], al
+    je continuar_verificacion_mov_oficial                   ; Verifica si hay otro oficial en la posición
 
-    mov al, [ficha_soldado] 
-    cmp byte[r12], al                                  ; Verifica si hay un soldado en la posición y si se puede capturar 
-    je captura_posible
 
 continuar_verificacion_mov_oficial:
-    inc r11                                             ; Mueve el puntero del vector_desplazamiento a la siguietne posición
+    inc r11
+    inc r14                                             ; Mueve el puntero del vector_desplazamiento a la siguietne posición
     loop loop_verificar_mov_oficial                     ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
 
     mov rdi, sin_movimientos_validos
     call_function puts                                  ; Imprime por pantalla que el oficial no tiene movimientos válidos, ya que iteró con todos los desplazamientos y no tiene movimientos válidos
     ret
+    
+chequear_vacio: 
+    lea r11, [vector_desplazamientos]
+    cmp byte [r13], 95                                      ; Verifica si hay un espacio libre
+    je finalizar_verificacion_mov_oficial    ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
+    cmp r14, 16
+    jl continuar_verificacion_mov_oficial
 
+                 ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
     ; (Faltaría tener en cuenta, en otra función podría ser, que si ambos oficiales no pueden moverse, el juego termina y ganan los soldados)
 
 finalizar_verificacion_mov_oficial:
@@ -205,9 +224,7 @@ captura_posible:
     mov dl, [r11]
     movsx rdx, dl
     add r10, rdx                                            ; Desplaza la posición cargada en R10 a la posición donde se encuentra el soldado
-
-    call_function esta_borde_lateral_tablero                ; Verifica si la ficha se encuentra en los bordes laterales del tablero
-    call_function esta_borde_superior_inferior_tablero      ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
+      ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
  
 
     ; En este punto, se verifica que el desplazamiento del salto respecto al soldado está dentro del tablero
@@ -220,14 +237,14 @@ captura_posible:
     add r12, r10
     
     mov al, [ficha_soldado]
-    cmp byte[r12], al                                       ; Verifica si hay un soldado en la posición
+    cmp byte[r15], al                                       ; Verifica si hay un soldado en la posición
     je continuar_verificacion_mov_oficial
 
-    cmp byte[r12], 32                                       ; Verifica si hay un casillero inválido o " " en la posición
+    cmp byte[r15], 32                                       ; Verifica si hay un casillero inválido o " " en la posición
     je continuar_verificacion_mov_oficial
 
     mov al, [ficha_oficial]
-    cmp byte[r12], al                                       ; Verifica si hay otro oficial en la posición
+    cmp byte[r15], al                                       ; Verifica si hay otro oficial en la posición
     je continuar_verificacion_mov_oficial               
 
     ; Si llega hasta este punto, la captura es posible y es un movimiento válido, por lo cual termina la verificación
@@ -532,6 +549,7 @@ verificar_salto:
     ; Aumenta el contador de capturas y elimina el soldado capturado
     add qword [capturas], 1         ; Incrementa el contador de capturas
     mov byte [board + r13], 95      ; Elimina el soldado en la posición intermedia, colocando espacio vacío
+    mov byte[es_captura], 1      
     jmp mov_valido
 
 
@@ -741,3 +759,18 @@ s_izquierda:
     add qword [soldado_izquierda], 1
     jmp mov_valido
     
+comprobar_captura:
+    cmp byte[es_captura],0
+    je eliminar_oficial
+    cmp byte[es_captura],1
+    je mover
+    ret
+
+eliminar_oficial:
+    mov byte[hay_captura_posible],0
+    mov r9, [ficha_a_mover]      
+    sub r9, 1                    ; Ajustar la posición de la ficha (de 1 a 0-indexado)
+    lea r8, [board + r9]         ; Apuntamos a la posición de la ficha original
+    mov byte[r8], 95
+    ret
+
