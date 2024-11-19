@@ -21,6 +21,8 @@ extern getchar
 extern verificar_movimiento_soldado
 extern clear_input_buffer
 extern quien_comienza
+extern es_movimiento_valido
+extern hay_captura_posible
 
 %macro call_function 1
 sub     rsp,8
@@ -152,6 +154,7 @@ game:
 
     call_function    comprobar_fin_juego
 
+mensaje_solicitar_movimiento:
     mov rdi, textoTurnoJuego 
     mov rsi, [turnoActual]
     mov rdx, [capturas]
@@ -175,7 +178,6 @@ ingrese_nuevamente:
 
     ; Si no es '0', sigue con el flujo normal de juego
 
-
     cmp qword[ficha_a_mover], 48 
     jg posicion_no_valida
 
@@ -192,12 +194,21 @@ ingrese_nuevamente:
     jne posicion_no_valida
 
     ; Hay que chequear si es una ficha que se puede mover
-    cmp byte[turnoActual], 79               ; Verifica que sea un oficial (Debería compararse con una variable que contenga la ficha del oficial)
+    mov al, [ficha_oficial]
+    cmp byte[turnoActual], al               ; Verifica que sea un oficial
     jne no_es_oficial
-    call_function verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial (Falta hacer que si no hay movimientos válidos, no pueda elegir una casilla destino)
+    call_function verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial
+
+    cmp byte[es_movimiento_valido], 1
+    je cambiar_oficial
+    jne mensaje_solicitar_movimiento
 
 no_es_oficial:
     call_function verificar_movimiento_soldado
+
+    cmp byte[es_movimiento_valido], 1
+    je cambiar_soldado
+    jne mensaje_solicitar_movimiento
 
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
      
