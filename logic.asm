@@ -318,16 +318,21 @@ verificar_movimiento_soldado_costado:
     cmp r10b, [casilla_roja_4]               ; La ficha está en una casilla roja y en el borde
     je verificar_movimiento_soldado_costado_borde
 
-    ; Si no está en el borde
+    ; Si no está en el borde, puede estar en casilla_roja_2 y casilla_roja_3
+    cmp r10b, [casilla_roja_2]
+    jne esta_casilla_roja_3
     mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
-    add r13b, [direccion_posible_costado_1]      ; Primer posible desplazamiento
+    add r13b, [direccion_posible_costado_2]     ; Primer posible desplazamiento
     cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+    jne soldado_sin_movimientos_validos
 
+esta_casilla_roja_3:
     mov r13, r12                                ; Mueve la matriz con el puntero apuntando a la posición de la ficha a R13
-    add r13b, [direccion_posible_costado_2]      ; Segundo posible desplazamiento
+    add r13b, [direccion_posible_costado_1]      ; Segundo posible desplazamiento
     cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
+    jne soldado_sin_movimientos_validos
 
 
 verificar_movimiento_soldado_costado_borde:
