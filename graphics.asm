@@ -2,11 +2,19 @@ extern printf
 extern scanf 
 extern getchar
 extern orientacion_tablero
+extern system   
+extern exit
 
 %macro printCadena 1
 mov rdi,%1
 sub     rsp,8
 call    printf
+add     rsp,8
+%endmacro
+
+%macro call_function 1
+sub     rsp,8
+call    %1
 add     rsp,8
 %endmacro
  
@@ -26,12 +34,12 @@ section .data
             db '1. Iniciar Juego', 10
             db '2. Crear Juego Personalizado', 10
             db '3. Cargar Partida', 10
-            db '4. Salir', 10
-            db 10
-            db 'Opcion: ', 0
+            db '4. Salir', 10, 0
+
+    opcion_text   db 'Opcion: ',0
 
     inputFormat      db      "%i",0 
-    emsg             db      10,'ERROR: Ingrese un numero valido.',10,10,0 
+    emsg             db      'Ingrese un numero valido: ', 0 
 
     posicion_tablero    db 66, 66,  3,  4,  5, 66, 66
                         db 66, 66, 10, 11, 12, 66, 66
@@ -47,7 +55,7 @@ section .data
     formato_tablero_salto   db  ' %c ',10,0
     titulo_tablero          db  10,'Tablero:                                Posiciones del tablero:',10,0
 
-    textoOrientacion        db  10,'[Opciones: "1" para 0° - "2" para 90° - "3" para 180° - "4" para 270°]',10,'Ingrese orientacion del tablero: ',0
+    textoOrientacion        db  10,'[Opciones: "1" para 0° - "2" para 90° - "3" para 180° - "4" para 270° | -1 para salir]',10,'Ingrese orientacion del tablero: ',0
     largo_fila              db  7
     desplaza_tablero        dq  0
     contador_numeros        dq  0    
@@ -59,6 +67,8 @@ section .data
     formato_nums_no_num     db  '    ',0
     salto_linea             db  10,0
 
+    clear_cmd db "clear", 0
+    
  
 section .bss
     opcion resw 1
@@ -68,11 +78,17 @@ section .text
     global print_menu 
     global print_tablero_new
     global seleccionar_orientacion
+    global clear_screen
 
 print_menu:
+    
+    call_function clear_screen
+
     printCadena titulo
     printCadena menu
+    printCadena opcion_text
 
+ask_again:
     mov rdi,inputFormat
     mov rsi,opcion
     sub     rsp,8
@@ -92,7 +108,7 @@ error:
         mov     al, 0
         printCadena emsg
         call    clear_input_buffer
-        jmp     seleccionar_orientacion
+        jmp     ask_again
 
 clear_input_buffer:
         sub     rsp, 8
@@ -206,9 +222,19 @@ seleccionar_orientacion:
     add     rsp,8
     cmp     rax, 1
     jne     error
+    cmp     byte[orientacion_tablero], 1
+    jl      exit
     cmp     byte[orientacion_tablero], 4
     jg      error
     cmp     byte[orientacion_tablero], 1
     jl      error
     mov ah, [orientacion_tablero]
     ret
+
+clear_screen:
+    lea rdi, [clear_cmd]      ; Cargar la dirección del comando clear
+    sub     rsp,8
+    call    system
+    add     rsp,8
+    ret
+

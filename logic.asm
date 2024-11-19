@@ -114,6 +114,9 @@ loop_verificar_mov_oficial:
     cmp byte [es_movimiento_posible], 1
     jne continuar_verificacion_mov_oficial
 
+    cmp byte[es_movimiento_posible], 1
+    jne continuar_verificacion_mov_oficial
+
     mov dl, [r11]
     movsx rdx, dl
     lea r13, [r12 + rdx]        ; Calcula la posición adyacente   
