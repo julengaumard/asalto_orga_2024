@@ -279,10 +279,6 @@ mover:
 ret
 
 
-
-
-
-
 mov_valido:
     mov al, [ficha_oficial]
     cmp [turnoActual], al 
