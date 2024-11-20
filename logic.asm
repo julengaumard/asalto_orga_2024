@@ -98,7 +98,7 @@ global comprobar_captura
 verificar_mov_oficial:
     mov byte[es_movimiento_valido], 0                      ; Establece que es_movimiento_valido es false
     lea r11, [vector_desplazamientos]                   ; Carga el puntero al primer elemento del vector_desplazamiento
-    mov cx, 16                                       ; Espacio para hacer todos los chequeos en 8 direcciones  
+    mov cx, 15                                       ; Espacio para hacer todos los chequeos en 8 direcciones  
     xor r14, r14                                     ; Inicializa contador de iteraciones  
 
 ; Verifica si los alrededores del oficial están libres o si hay un soldado y se puede capturar
@@ -135,8 +135,8 @@ loop_verificar_mov_oficial:
 
 
 continuar_verificacion_mov_oficial:
-    inc r11
-    inc r14                                             ; Mueve el puntero del vector_desplazamiento a la siguietne posición
+    inc r11                                             ; Avanza al siguiente desplazamiento
+    inc r14                                             
     loop loop_verificar_mov_oficial                     ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
 
     mov rdi, sin_movimientos_validos
