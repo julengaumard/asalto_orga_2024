@@ -10,6 +10,7 @@ extern mov_valido
 extern ingrese_nuevamente
 extern mover
 
+extern oficiales_eliminados
 extern posicion_destino
 extern orientacion_tablero
 extern ficha_soldado
@@ -772,5 +773,6 @@ eliminar_oficial:
     sub r9, 1                    ; Ajustar la posición de la ficha (de 1 a 0-indexado)
     lea r8, [board + r9]         ; Apuntamos a la posición de la ficha original
     mov byte[r8], 95
+    add byte[oficiales_eliminados],1
     ret
 

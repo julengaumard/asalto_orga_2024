@@ -41,6 +41,7 @@ section .data
     global ficha_soldado
     global ficha_oficial
     global turnoActual
+    global oficiales_eliminados
 
     board   db 32, 32, 88, 88, 88, 32, 32
             db 32, 32, 88, 88, 88, 32, 32
@@ -92,7 +93,7 @@ section .data
     formatoTurno      db  '%d',0 
     capturas          dq   0
     orientacion_tablero db  1
-
+    oficiales_eliminados db 0
 
     ficha_soldado       db  88
     ficha_oficial       db  79
@@ -352,6 +353,7 @@ reiniciar_juego:
     mov word [ficha_oficial], 79
 
     mov byte [orientacion_tablero], 1
+    mov byte[oficiales_eliminados], 0
 
     ret
 

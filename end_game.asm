@@ -21,7 +21,7 @@ extern oficial_diagonalsupder
 extern oficial_diagonalinfizq
 extern oficial_diagonalinfder
 extern orientacion_tablero
-; extern oficiales_eliminados
+extern oficiales_eliminados
 
 %macro call_function 1
 sub     rsp,8
@@ -54,8 +54,8 @@ comprobar_fin_juego:
     cmp qword[capturas], 41
     jge juego_finalizado
 
-    ; cmp byte[oficiales_eliminados],2
-    ; je juego_finalizado
+    cmp byte[oficiales_eliminados],2
+    je juego_finalizado
 
     cmp byte[orientacion_tablero], 1
     je orientacion_original
@@ -84,9 +84,9 @@ juego_finalizado:
     mov rsi, [ficha_soldado]
     mov rdx, motivo_soldado
 
-    ; cmp byte[oficiales_eliminados],2
-    ; jne gano_oficial
-    ; mov rdx, motivo_sin_oficial
+    cmp byte[oficiales_eliminados],2
+    jne gano_oficial
+    mov rdx, motivo_sin_oficial
     
 gano_oficial:
     call_function printf
