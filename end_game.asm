@@ -21,6 +21,7 @@ extern oficial_diagonalsupder
 extern oficial_diagonalinfizq
 extern oficial_diagonalinfder
 extern orientacion_tablero
+; extern oficiales_eliminados
 
 %macro call_function 1
 sub     rsp,8
@@ -38,6 +39,7 @@ section .data
     ganador_es              db  10, 'EL GANADOR DE LA PARTIDA ES [%c]', 10, 'Motivo: [%s]', 10, 0
     motivo_soldado          db  "Los soldados invadieron la base.",0
     motivo_oficial          db  "Los oficiales capturaron suficientes soldados.",0
+    motivo_sin_oficial      db  "No hay mas oficiales en juego.",0
 
     estadisiticas_texto     db  10, 'Estadisticas:', 10, '# Capturas: %i', 10, 0
     soldado_texto           db '# Movimientos soldados:',10,0 
@@ -51,6 +53,9 @@ section .text
 comprobar_fin_juego:
     cmp qword[capturas], 41
     jge juego_finalizado
+
+    ; cmp byte[oficiales_eliminados],2
+    ; je juego_finalizado
 
     cmp byte[orientacion_tablero], 1
     je orientacion_original
@@ -78,6 +83,10 @@ juego_finalizado:
     jge gano_oficial
     mov rsi, [ficha_soldado]
     mov rdx, motivo_soldado
+
+    ; cmp byte[oficiales_eliminados],2
+    ; jne gano_oficial
+    ; mov rdx, motivo_sin_oficial
     
 gano_oficial:
     call_function printf
@@ -147,7 +156,7 @@ orientacion_original:
     cmp al, [ficha_soldado]
     jne continue
 
-    jge juego_finalizado
+    jmp juego_finalizado
 
 orientacion_90:
     mov al, [board + 18]
@@ -170,17 +179,17 @@ orientacion_90:
     cmp al, [ficha_soldado]
     jne continue
 
+    mov al, [board + 32]
+    cmp al, [ficha_soldado]
+    jne continue
     mov al, [board + 33]
     cmp al, [ficha_soldado]
     jne continue
     mov al, [board + 34]
     cmp al, [ficha_soldado]
     jne continue
-    mov al, [board + 35]
-    cmp al, [ficha_soldado]
-    jne continue
 
-    jge juego_finalizado
+    jmp juego_finalizado
 
 orientacion_180:
     mov al, [board + 2]
@@ -203,17 +212,17 @@ orientacion_180:
     cmp al, [ficha_soldado]
     jne continue
 
+    mov al, [board + 16]
+    cmp al, [ficha_soldado]
+    jne continue
     mov al, [board + 17]
     cmp al, [ficha_soldado]
     jne continue
     mov al, [board + 18]
     cmp al, [ficha_soldado]
     jne continue
-    mov al, [board + 19]
-    cmp al, [ficha_soldado]
-    jne continue
 
-    jge juego_finalizado
+    jmp juego_finalizado
 
 orientacion_270:
     mov al, [board + 14]
@@ -246,4 +255,4 @@ orientacion_270:
     cmp al, [ficha_soldado]
     jne continue
 
-    jge juego_finalizado
+    jmp juego_finalizado
