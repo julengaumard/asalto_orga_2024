@@ -249,7 +249,10 @@ captura_posible:
 
     mov al, [ficha_oficial]
     cmp byte[r15], al                                       ; Verifica si hay otro oficial en la posición
-    je continuar_verificacion_mov_oficial               
+    je continuar_verificacion_mov_oficial
+
+    cmp byte[r15], 95
+    jne continuar_verificacion_mov_oficial                                       ; Verifica si la posición está vacía
 
     ; Si llega hasta este punto, la captura es posible y es un movimiento válido, por lo cual termina la verificación
     mov byte[hay_captura_posible], 1
