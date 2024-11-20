@@ -148,6 +148,7 @@ crear_juego_personalizado:
 game:
     call_function clear_screen
 
+
     lea rdi, [board]
     call_function    print_tablero_new   ; Imprime el tablero 
 
@@ -252,7 +253,8 @@ pedir_posicion:
     ret
 
 mover:
-    mov byte[es_captura], 0
+    mov byte[es_captura],0
+    mov byte[hay_captura_posible],0
     mov r9, [posicion_destino]   ; Cargar la posición de destino
     sub r9, 1                    ; Ajustar a índice 0
     lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
