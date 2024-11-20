@@ -20,6 +20,7 @@ extern oficial_diagonalsupizq
 extern oficial_diagonalsupder
 extern oficial_diagonalinfizq
 extern oficial_diagonalinfder
+extern orientacion_tablero
 
 %macro call_function 1
 sub     rsp,8
@@ -38,11 +39,11 @@ section .data
     motivo_soldado          db  "Los soldados invadieron la base.",0
     motivo_oficial          db  "Los oficiales capturaron suficientes soldados.",0
 
-    estadisiticas_texto     db  'Estadisticas:', 10, '~ Capturas: %i', 10, 0
-    soldado_texto           db '~ Movimientos soldados:',10,0 
-    oficial_texto           db '~ Movimientos oficial:',10,0 
-    movimientos_texto       db 'Arriba %i', 10, 'Abajo %i', 10, 'Derecha %i', 10, 'Izquierda %i',10, 0
-    diagonales_texto        db 'Diagonal superior derecha %i',10,'Diagonal superior izquierda %i',10 ,'Diagonal inferior derecha %i', 10, 'Diagonal inferior izquierda %i',10,  0
+    estadisiticas_texto     db  10, 'Estadisticas:', 10, '# Capturas: %i', 10, 0
+    soldado_texto           db '# Movimientos soldados:',10,0 
+    oficial_texto           db '# Movimientos de los oficiales',10,0 
+    movimientos_texto       db '  ~ Arriba:    %i', 10, '  ~ Abajo:     %i', 10, '  ~ Derecha:   %i', 10, '  ~ Izquierda: %i',10, 0
+    diagonales_texto        db '  ~ Diagonal superior derecha:   %i',10,'  ~ Diagonal superior izquierda: %i',10 ,'  ~ Diagonal inferior derecha:   %i', 10, '  ~ Diagonal inferior izquierda: %i',10,  0
 
 section .text
     global comprobar_fin_juego
@@ -51,6 +52,71 @@ comprobar_fin_juego:
     cmp qword[capturas], 41
     jge juego_finalizado
 
+    cmp byte[orientacion_tablero], 1
+    je orientacion_original
+
+    cmp byte[orientacion_tablero], 2
+    je orientacion_90
+
+    cmp byte[orientacion_tablero], 3
+    je orientacion_180
+
+    jmp orientacion_270
+
+continue:   
+    ret
+
+juego_finalizado:
+    mov rdi, fin_del_juego_texto
+    call_function printf
+
+    mov rdi, ganador_es
+    mov rsi, [ficha_oficial]
+    mov rdx, motivo_oficial
+
+    cmp qword[capturas], 41
+    jge gano_oficial
+    mov rsi, [ficha_soldado]
+    mov rdx, motivo_soldado
+    
+gano_oficial:
+    call_function printf
+
+    mov rdi, estadisiticas_texto
+    mov rsi, [capturas]
+    call_function printf
+    ; mov rdi, soldado_texto
+    ; call_function printf
+    ; mov rdi, movimientos_texto
+    ; mov rsi, [soldado_arriba]
+    ; mov rdx, [soldado_abajo]
+    ; mov rcx, [soldado_derecha]
+    ; mov rcx, [soldado_izquierda]
+    ; call_function printf
+    ; mov rdi, diagonales_texto
+    ; mov rsi, [soldado_diagonalsupder]
+    ; mov rdx, [soldado_diagonalsupizq]
+    ; mov rcx, [soldado_diagonalinfder]
+    ; mov rcx, [soldado_diagonalinfizq]
+    ; call_function printf
+    mov rdi, oficial_texto
+    call_function printf
+    mov rdi, movimientos_texto
+    mov rsi, [oficial_arriba]
+    mov rdx, [oficial_abajo]
+    mov rcx, [oficial_derecha]
+    mov r8, [oficial_izquierda]
+    call_function printf
+    mov rdi, diagonales_texto
+    mov rsi, [oficial_diagonalsupder]
+    mov rdx, [oficial_diagonalsupizq]
+    mov rcx, [oficial_diagonalinfder]
+    mov r8, [oficial_diagonalinfizq]
+    call_function printf
+    jmp exit
+
+
+orientacion_original:
     mov al, [board + 46]
     cmp al, [ficha_soldado]
     jne continue
@@ -83,54 +149,101 @@ comprobar_fin_juego:
 
     jge juego_finalizado
 
-continue:   
-    ret
+orientacion_90:
+    mov al, [board + 18]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 19]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 20]
+    cmp al, [ficha_soldado]
+    jne continue
 
-juego_finalizado:
-    mov rdi, fin_del_juego_texto
-    call_function printf
+    mov al, [board + 25]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 26]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 27]
+    cmp al, [ficha_soldado]
+    jne continue
 
-    mov rdi, ganador_es
-    mov rsi, [ficha_oficial]
-    mov rdx, motivo_oficial
+    mov al, [board + 33]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 34]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 35]
+    cmp al, [ficha_soldado]
+    jne continue
 
-    cmp qword[capturas], 41
-    jge gano_oficial
-    mov rsi, [ficha_soldado]
-    mov rdx, motivo_soldado
-    
-gano_oficial:
-    call_function printf
+    jge juego_finalizado
 
-    mov rdi, estadisiticas_texto
-    mov rsi, [capturas]
-    call_function printf
-    mov rdi, soldado_texto
-    call_function printf
-    mov rdi, movimientos_texto
-    mov rsi, [soldado_arriba]
-    mov rdx, [soldado_abajo]
-    mov rcx, [soldado_derecha]
-    mov rcx, [soldado_izquierda]
-    call_function printf
-    mov rdi, diagonales_texto
-    mov rsi, [soldado_diagonalsupder]
-    mov rdx, [soldado_diagonalsupizq]
-    mov rcx, [soldado_diagonalinfder]
-    mov rcx, [soldado_diagonalinfizq]
-    call_function printf
-    mov rdi, oficial_texto
-    call_function printf
-    mov rdi, movimientos_texto
-    mov rsi, [oficial_arriba]
-    mov rdx, [oficial_abajo]
-    mov rcx, [oficial_derecha]
-    mov r8, [oficial_izquierda]
-    call_function printf
-    mov rdi, diagonales_texto
-    mov rsi, [oficial_diagonalsupder]
-    mov rdx, [oficial_diagonalsupizq]
-    mov rcx, [oficial_diagonalinfder]
-    mov r8, [oficial_diagonalinfizq]
-    call_function printf
-    jmp exit
+orientacion_180:
+    mov al, [board + 2]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 3]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 4]
+    cmp al, [ficha_soldado]
+    jne continue
+
+    mov al, [board + 9]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 10]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 11]
+    cmp al, [ficha_soldado]
+    jne continue
+
+    mov al, [board + 17]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 18]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 19]
+    cmp al, [ficha_soldado]
+    jne continue
+
+    jge juego_finalizado
+
+orientacion_270:
+    mov al, [board + 14]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 15]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 16]
+    cmp al, [ficha_soldado]
+    jne continue
+
+    mov al, [board + 21]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 22]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 23]
+    cmp al, [ficha_soldado]
+    jne continue
+
+    mov al, [board + 28]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 29]
+    cmp al, [ficha_soldado]
+    jne continue
+    mov al, [board + 30]
+    cmp al, [ficha_soldado]
+    jne continue
+
+    jge juego_finalizado

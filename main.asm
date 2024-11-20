@@ -118,13 +118,9 @@ section .text
 main:
 
 menu:
-    
     call_function print_menu ; Imprime el menu y procesa el input
-    
-    mov byte [orientacion_tablero], 1
-
-    
-    cmp ah, 1        ; Opción 1: Iniciar juego
+        
+    cmp ah, 1      
     je iniciar_juego
 
     cmp ah, 2
@@ -133,8 +129,7 @@ menu:
     cmp ah, 3
     je cargar_partida
 
- 
-    cmp ah, 4        ; Opción 4: Salir
+    cmp ah, 4     
     je exit
 
     jmp menu
@@ -355,6 +350,8 @@ reiniciar_juego:
 
     mov word [ficha_soldado], 88
     mov word [ficha_oficial], 79
+
+    mov byte [orientacion_tablero], 1
 
     ret
 
