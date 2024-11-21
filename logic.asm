@@ -24,14 +24,6 @@ add     rsp,8
 
 
 section .data
-    global soldado_arriba
-    global soldado_abajo 
-    global soldado_derecha 
-    global soldado_izquierda
-    global soldado_diagonalsupizq
-    global soldado_diagonalsupder
-    global soldado_diagonalinfizq
-    global soldado_diagonalinfder
     global movimiento_realizado
     global oficial_arriba
     global oficial_abajo 
@@ -55,14 +47,6 @@ section .data
     es_movimiento_valido db 0
     hay_captura_posible db 0
     es_captura db 0
-    soldado_arriba dq 0
-    soldado_abajo dq 0
-    soldado_derecha dq 0
-    soldado_izquierda dq 0
-    soldado_diagonalsupizq dq 0
-    soldado_diagonalsupder dq 0
-    soldado_diagonalinfizq dq 0
-    soldado_diagonalinfder dq 0
     oficial_arriba dq 0
     oficial_abajo dq 0
     oficial_derecha dq 0
@@ -632,11 +616,11 @@ orientacion1:
     je solo_der
 
     cmp r12, -7                    ; Hacia abajo
-    je s_abajo
+    je mov_valido
     cmp r12, -8                    ; Diagonal superior izquierda
-    je s_diagonal_infizq
+    je mov_valido
     cmp r12, -6                    ; Diagonal superior derecha
-    je s_diagonal_infder
+    je mov_valido
 
     jmp invalido_movimiento
 
@@ -652,11 +636,11 @@ orientacion2:
 
 
     cmp r12, -1                     
-    je s_derecha
+    je mov_valido
     cmp r12, 6                     ; Diagonal inferior izquierda
-    je s_diagonal_supder
+    je mov_valido
     cmp r12, -8                    ; Diagonal superior izquierda
-    je s_diagonal_infder
+    je mov_valido
     jmp invalido_movimiento
 
 
@@ -671,11 +655,11 @@ orientacion3:
     je solo_izq
 
     cmp r12, 7                     ; Hacia arriba
-    je s_arriba
+    je mov_valido
     cmp r12, 6                     ; Diagonal inferior izquierda
-    je s_diagonal_supder
+    je mov_valido
     cmp r12, 8                     ; Diagonal inferior derecha
-    je s_diagonal_supizq
+    je mov_valido
     jmp invalido_movimiento
 
 orientacion4:
@@ -689,11 +673,11 @@ orientacion4:
     je solo_arriba
    
     cmp r12, 1                     
-    je s_izquierda
+    je mov_valido
     cmp r12, 8                     ; Diagonal inferior derecha
-    je s_diagonal_supizq
+    je mov_valido
     cmp r12, -6                    ; Diagonal superior derecha
-    je s_diagonal_infizq
+    je mov_valido
     jmp invalido_movimiento
 
 
@@ -702,23 +686,23 @@ orientacion4:
 
 solo_izq:
     cmp r12, 1                    
-    je s_izquierda
+    je mov_valido
     jmp invalido_movimiento
     
 
 solo_der:
     cmp r12, -1                     
-    je s_derecha
+    je mov_valido
     jmp invalido_movimiento
 
 solo_arriba:
     cmp r12, 7                     
-    je s_arriba
+    je mov_valido
     jmp invalido_movimiento
 
 solo_abajo:
     cmp r12, -7                    
-    je s_abajo
+    je mov_valido
     jmp invalido_movimiento
 
 invalido_movimiento:
@@ -727,37 +711,6 @@ invalido_movimiento:
     mov byte[movimiento_realizado],1
     ret
 
-s_abajo:
-    add qword [soldado_abajo], 1
-    jmp mov_valido
-
-s_arriba:
-    add qword [soldado_arriba], 1
-    jmp mov_valido
-
-s_diagonal_supizq:
-    add qword [soldado_diagonalsupizq], 1
-    jmp mov_valido
-
-s_diagonal_supder:
-    add qword [soldado_diagonalsupder], 1
-    jmp mov_valido
-
-s_diagonal_infizq:
-    add qword [soldado_diagonalinfizq], 1
-    jmp mov_valido
-
-s_diagonal_infder:
-    add qword [soldado_diagonalinfder], 1
-    jmp mov_valido
-
-s_derecha:
-    add qword [soldado_derecha], 1
-    jmp mov_valido
-
-s_izquierda:
-    add qword [soldado_izquierda], 1
-    jmp mov_valido
     
 comprobar_captura:
     cmp byte[es_captura],0
@@ -774,4 +727,3 @@ eliminar_oficial:
     mov byte[r8], 95
     add byte[oficiales_eliminados],1
     ret
-
