@@ -47,7 +47,6 @@ section .data
     global es_movimiento_posible
     txtdestino db 'Ingrese la casilla de destino: ',0
     destino_invalido db  10, 'La posicion de destino no es valida',10, 'Ingrese nuevamente la ficha que quiere mover :',0
-    sin_movimientos_validos db 10, "La ficha seleccionada no posee movimientos válidos", 10, 0
     mensaje_error_orientacion_tablero db 10, "La orientación del tablero no es válida.", 10, 0
     movimiento_valido db 0
     vector_desplazamientos db -8, -7, -6, -1, 1, 6, 7, 8 
@@ -97,10 +96,10 @@ global comprobar_captura
 
 ; Si el movimiento es posible, establece true en es_movimiento_valido
 verificar_mov_oficial:
-    mov byte[es_movimiento_valido], 0                      ; Establece que es_movimiento_valido es false
+    mov byte[es_movimiento_valido], 0                   ; Establece que es_movimiento_valido es false
     lea r11, [vector_desplazamientos]                   ; Carga el puntero al primer elemento del vector_desplazamiento
-    mov cx, 15                                       ; Espacio para hacer todos los chequeos en 8 direcciones  
-    xor r14, r14                                     ; Inicializa contador de iteraciones  
+    mov cx, 15                                          ; Espacio para hacer todos los chequeos en 8 direcciones  
+    xor r14, r14                                        ; Inicializa contador de iteraciones
 
 ; Verifica si los alrededores del oficial están libres o si hay un soldado y se puede capturar
 loop_verificar_mov_oficial:
@@ -108,54 +107,50 @@ loop_verificar_mov_oficial:
     mov r10, [ficha_a_mover]                            ; Posición actual de la ficha a mover
     sub r10, 1                                          ; Se ajusta a 0-index
     lea r12, [board]                                    ; Guarda el puntero al primer elemento del tablero
-    add r12, r10                                        ; El puntero del tablero apunta a la posición de la ficha a mover             ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
+    add r12, r10                                        ; El puntero del tablero apunta a la posición de la ficha a mover             
 
-    call esta_borde_lateral_tablero                 ; Verifica si la ficha se encuentra en los bordes laterales del tablero
-    call esta_borde_superior_inferior_tablero 
+    call esta_borde_lateral_tablero                     ; Verifica si la ficha se encuentra en los bordes laterales del tablero
+    call esta_borde_superior_inferior_tablero           ; Verifica si la ficha se encuentra en el borde superior o en el borde inferior del tablero
 
     cmp byte [es_movimiento_posible], 1
     jne continuar_verificacion_mov_oficial
 
     mov dl, [r11]
     movsx rdx, dl
-    lea r13, [r12 + rdx]        ; Calcula la posición adyacente   
+    lea r13, [r12 + rdx]                                ; Calcula la posición adyacente   
     mov r15, r13
-    add r15, rdx                ; Almacena adyacente del adyacente (en la direccion apuntada por r11)                  
+    add r15, rdx                                        ; Almacena adyacente del adyacente (en la direccion apuntada por r11)                  
             
     mov al, [ficha_soldado]
-    cmp byte [r13], al                                      ; Verifica si hay un soldado en la posición y si se puede capturar
-    je captura_posible  ;chequea 8 veces (1 en cada direccion) antes de saltar a la siguiente iteración
+    cmp byte [r13], al                                  ; Verifica si hay un soldado en la posición y si se puede capturar
+    je captura_posible                                  ; Chequea 8 veces (1 en cada direccion) antes de saltar a la siguiente iteración
     cmp r14, 8
     jl continuar_verificacion_mov_oficial
     cmp r14, 8
     je reiniciar_vector
     cmp r14, 8
-    jg chequear_vacio
-
-                  ; Verifica si hay otro oficial en la posición
-
+    jg chequear_vacio                                   ; Verifica si hay un espacio sin ocupar
 
 continuar_verificacion_mov_oficial:
     inc r11                                             ; Avanza al siguiente desplazamiento
     inc r14                                             
     loop loop_verificar_mov_oficial                     ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
 
-    mov rdi, sin_movimientos_validos
-    call_function puts                                  ; Imprime por pantalla que el oficial no tiene movimientos válidos, ya que iteró con todos los desplazamientos y no tiene movimientos válidos
+    ; Iteró con todos los desplazamientos y no tiene movimientos válidos
+    xor rax, rax
+    mov al, [es_movimiento_valido]
     ret
     
 chequear_vacio: 
-    cmp byte [r13], 95                                      ; Verifica si hay un espacio libre
-    je finalizar_verificacion_mov_oficial    ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
+    cmp byte [r13], 95                                  ; Verifica si hay un espacio libre
+    je finalizar_verificacion_mov_oficial               ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
     cmp r14, 15
-    jl continuar_verificacion_mov_oficial
-
-
-                 ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
-    ; (Faltaría tener en cuenta, en otra función podría ser, que si ambos oficiales no pueden moverse, el juego termina y ganan los soldados)
+    jl continuar_verificacion_mov_oficial               ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
 
 finalizar_verificacion_mov_oficial:
     call_function movimiento_posible
+    xor rax, rax
+    mov al, [es_movimiento_valido]
     ret
 
 reiniciar_vector:
@@ -318,9 +313,6 @@ rotacion_90_270:
     ; No tiene movimientos válidos
 soldado_sin_movimientos_validos:
     mov byte[es_movimiento_valido], 0
-    mov rdi, sin_movimientos_validos
-    call_function puts
-
     ret
 
 finalizar_verificacion_movimiento_soldado:
