@@ -52,19 +52,19 @@ section .data
     diagonales_texto        db '  ~ Diagonal superior derecha:   %i',10,'  ~ Diagonal superior izquierda: %i',10 ,'  ~ Diagonal inferior derecha:   %i', 10, '  ~ Diagonal inferior izquierda: %i',10,  0
     contador                dq 1
     hay_movimientos         dq 0
+    oficiales_sin_movimiento db 0 
 
 section .text
     global comprobar_fin_juego
 
 comprobar_fin_juego:
-    cmp qword[capturas], 41
-    jge juego_finalizado
+    cmp qword[capturas], 15
+    jg juego_finalizado
 
     cmp byte[oficiales_eliminados],2
     je juego_finalizado
 
-    ; TODO: Descomentar una vez arreglado
-    ; jmp comprobar_sin_movimientos
+    jmp comprobar_sin_movimientos
 
 seguir_comprobando:
     cmp byte[orientacion_tablero], 1
@@ -89,11 +89,11 @@ juego_finalizado:
     mov rsi, [ficha_oficial]
     mov rdx, motivo_capturaron
 
-    cmp qword[hay_movimientos], 0
-    jge sin_movimientos
+    cmp qword[hay_movimientos], 1
+    jne sin_movimientos
 
-    cmp qword[capturas], 41
-    jge no_modificar_motivo
+    cmp qword[capturas], 15
+    jg no_modificar_motivo
 
     mov rsi, [ficha_soldado]
     mov rdx, motivo_invadieron
@@ -266,6 +266,8 @@ orientacion_270:
 
 comprobar_sin_movimientos:
     mov qword[contador], 0
+    mov byte[oficiales_sin_movimiento], 0
+
     
 evaluar_siguiente:
     mov r9, [contador]
@@ -286,7 +288,15 @@ evaluar_siguiente:
     mov [ficha_a_mover], r9
     call_function verificar_mov_oficial
     cmp rax, 1
-    ; ↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TODO: Aca hay que comprobar si ese oficial tiene movimientos validos.
-    je seguir_comprobando ; Si al menos 1 tiene, ya podes jugar asi que dejamos de buscar oficiales para chequear.
 
-    jmp evaluar_siguiente
+    je seguir_comprobando ; Si al menos 1 tiene, ya podes jugar asi que dejamos de buscar oficiales para chequear.
+    jne oficial_sin_movimientos_validos
+
+oficial_sin_movimientos_validos:
+    inc byte [oficiales_sin_movimiento]     ; Incrementa la cantidad de oficiales sin movimientos válidos
+    mov qword[hay_movimientos], 0
+    mov al, [oficiales_sin_movimiento]      
+    cmp al, 2                               ; Verifica si los dos oficiales no poseen movimientos válidos
+
+    je juego_finalizado                     ; Si los dos oficiales no poseen movimientos válidos, termina el juego
+    jmp evaluar_siguiente                   ; Hay un oficial sin movimientos válidos pero el otro no se sabe.
