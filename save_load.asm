@@ -5,6 +5,15 @@ extern ficha_soldado
 extern ficha_oficial
 extern orientacion_tablero
 extern oficiales_eliminados
+extern capturas
+extern oficial_arriba
+extern oficial_abajo
+extern oficial_derecha
+extern oficial_izquierda
+extern oficial_diagonalsupizq
+extern oficial_diagonalsupder
+extern oficial_diagonalinfizq
+extern oficial_diagonalinfder
 
 section .data
     archivoGuardado    db 'saved_game.bin', 0
@@ -63,17 +72,66 @@ save_game:
     mov rdx, 1                      ; Tamaño: 1 byte
     call write
 
-    ; Escribimos la orientacion (1 byte)
-    mov rdi, [fileHandle]           
-    mov rsi, orientacion_tablero    ; orientacion
-    mov rdx, 1                      ; Tamaño: 1 byte
-    call write
 
     ; Escribimos cantidad oficiales eliminados (1 byte)
     mov rdi, [fileHandle]           
     mov rsi, oficiales_eliminados   
     mov rdx, 1                      ; Tamaño: 1 byte
     call write
+
+    ; Escribimos capturas (1 byte)
+    mov rdi, [fileHandle]           
+    mov rsi, capturas
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    ;Escribimos cantidad de movimientos de los oficiales (1 byte cada mov)
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_arriba   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_abajo   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_derecha   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_izquierda   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_diagonalinfder   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_diagonalinfizq   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_diagonalsupder   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+    mov rdi, [fileHandle]           
+    mov rsi, oficial_diagonalsupizq   
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
+     ; Escribimos la orientacion (1 byte)
+    mov rdi, [fileHandle]           
+    mov rsi, orientacion_tablero    ; orientacion
+    mov rdx, 1                      ; Tamaño: 1 byte
+    call write
+
 
     ; Cierra el archivo
     mov rdi, [fileHandle]
@@ -138,15 +196,64 @@ load_game:
     mov rdx, 1                        ; Tamaño: 1 byte
     call read
 
-    ; Cargamos la orientacion (1 byte)
-    mov rdi, [fileDescriptor]         ; Descriptor de archivo
-    mov rsi, orientacion_tablero              ; Turno actual
-    mov rdx, 1                        ; Tamaño: 1 byte
-    call read
 
     ; Cargamos oficiales_eliminados (1 byte)
     mov rdi, [fileDescriptor]         ; Descriptor de archivo
     mov rsi, oficiales_eliminados         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    
+    ; Cargamos capturas (1 byte)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, capturas         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+     ; Cargamos movimientos de los oficiales (1 byte cada movimiento)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_arriba         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_abajo         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_derecha         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_izquierda         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_diagonalinfder         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_diagonalinfizq         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_diagonalsupder         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, oficial_diagonalsupizq         
+    mov rdx, 1                        ; Tamaño: 1 byte
+    call read
+
+     ; Cargamos la orientacion (1 byte)
+    mov rdi, [fileDescriptor]         ; Descriptor de archivo
+    mov rsi, orientacion_tablero              ; Turno actual
     mov rdx, 1                        ; Tamaño: 1 byte
     call read
 

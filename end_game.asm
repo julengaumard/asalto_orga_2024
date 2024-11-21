@@ -4,14 +4,6 @@ extern ficha_oficial
 extern printf
 extern exit
 extern capturas
-extern soldado_arriba
-extern soldado_abajo
-extern soldado_derecha
-extern soldado_izquierda
-extern soldado_diagonalsupizq
-extern soldado_diagonalsupder
-extern soldado_diagonalinfizq
-extern soldado_diagonalinfder
 extern oficial_arriba
 extern oficial_abajo
 extern oficial_derecha
