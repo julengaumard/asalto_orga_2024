@@ -290,13 +290,4 @@ evaluar_siguiente:
     cmp rax, 1
 
     je seguir_comprobando ; Si al menos 1 tiene, ya podes jugar asi que dejamos de buscar oficiales para chequear.
-    jne oficial_sin_movimientos_validos
-
-oficial_sin_movimientos_validos:
-    inc byte [oficiales_sin_movimiento]     ; Incrementa la cantidad de oficiales sin movimientos válidos
-    mov qword[hay_movimientos], 0
-    mov al, [oficiales_sin_movimiento]      
-    cmp al, 2                               ; Verifica si los dos oficiales no poseen movimientos válidos
-
-    je juego_finalizado                     ; Si los dos oficiales no poseen movimientos válidos, termina el juego
-    jmp evaluar_siguiente                   ; Hay un oficial sin movimientos válidos pero el otro no se sabe.
+    jmp evaluar_siguiente 
