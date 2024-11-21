@@ -44,6 +44,7 @@ section .data
     global es_movimiento_valido
     global hay_captura_posible
     global es_captura
+    global es_movimiento_posible
     txtdestino db 'Ingrese la casilla de destino: ',0
     destino_invalido db  10, 'La posicion de destino no es valida',10, 'Ingrese nuevamente la ficha que quiere mover :',0
     sin_movimientos_validos db 10, "La ficha seleccionada no posee movimientos válidos", 10, 0
