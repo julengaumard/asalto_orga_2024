@@ -43,14 +43,6 @@ section .data
     global turnoActual
     global oficiales_eliminados
 
-    board   db 32, 32, 88, 88, 88, 32, 32
-            db 32, 32, 88, 88, 88, 32, 32
-            db 88, 88, 88, 88, 88, 88, 88
-            db 88, 88, 88, 88, 88, 88, 88
-            db 88, 88, 95, 95, 95, 88, 88
-            db 32, 32, 95, 95, 79, 32, 32
-            db 32, 32, 79, 95, 95, 32, 32
-
     board_inicial   db 32, 32, 88, 88, 88, 32, 32
                     db 32, 32, 88, 88, 88, 32, 32
                     db 88, 88, 88, 88, 88, 88, 88
@@ -88,6 +80,8 @@ section .data
     posicion_invalida db  'La posicion no es valida : ',0
     textoCargar db 'Deseas cargar la partida guardada? (1 para cargar, 0 para continuar): ', 0
     txtdestino db 'Ingrese la casilla de destino: ',0
+    oficial_sin_movimientos_validos db 10, "El oficial seleccionado no posee movimientos válidos.", 10, 0
+    soldado_sin_movimientos_validos db 10, "El soldado seleccionado no posee movimientos válidos.", 10, 0
     movimiento_valido db 0    
     turnoActual       db  'X',0
     formatoTurno      db  '%d',0 
@@ -105,6 +99,8 @@ section .bss
     ficha_a_mover    resq    1
     posicion_destino resq    1
     global exit
+    global board
+    board resb 49
    
 
 
@@ -170,20 +166,24 @@ ingrese_nuevamente:
     cmp    rax,0
     je     posicion_no_valida
 
-    ; Verifica si la entrada es '0' para guardar la partida
+    ; Verifica si la entrada es '0' para salir del juego
     mov al, [ficha_a_mover]
-    cmp al, 1        ; Compara si la entrada es 0
-    jl exit
-    je guardar_partida ; Si es 0, guarda la partida
+    cmp al, 0
+    je exit
 
-    ; Si no es '0', sigue con el flujo normal de juego
+    ; Verifica si la entrada es '1' para guardar la partida
+    cmp al, 1        ; Compara si la entrada es 1
+    je guardar_partida ; Si es 1, guarda la partida
 
+    ; Si no es '1' o '0', sigue con el flujo normal de juego
+
+    ; Chequea si la posición es externa al tablero
     cmp qword[ficha_a_mover], 48 
     jg posicion_no_valida
 
-    ; Chequea si la posicion es externa al tablero
-    cmp qword[ficha_a_mover], 48 
-    jg posicion_no_valida
+    ; Chequea si la posición es menor a 0
+    cmp qword[ficha_a_mover], 0
+    jl posicion_no_valida 
  
     ; Chequea si la ficha a mover corresponde a tu turno.
     mov r9, [ficha_a_mover] 
@@ -201,14 +201,19 @@ ingrese_nuevamente:
 
     cmp byte[es_movimiento_valido], 1
     je cambiar_oficial
-    jne mensaje_solicitar_movimiento
+    jne mensaje_oficial_sin_movimientos
+
+mensaje_oficial_sin_movimientos:
+    mov rdi, oficial_sin_movimientos_validos
+    call_function puts
+    jmp mensaje_solicitar_movimiento
 
 no_es_oficial:
     call_function verificar_movimiento_soldado
 
     cmp byte[es_movimiento_valido], 1
     je cambiar_soldado
-    jne mensaje_solicitar_movimiento
+    jne mensaje_soldado_sin_movimientos
 
     ; Hay que pedir la posicion a la que se va a mover. Chequear si es valida
      
@@ -222,6 +227,11 @@ no_es_oficial:
     cmp byte [turnoActual], al
     je cambiar_oficial
     ret
+
+mensaje_soldado_sin_movimientos:
+    mov rdi, soldado_sin_movimientos_validos
+    call_function puts
+    jmp mensaje_solicitar_movimiento
 
 cambiar_soldado:
     call_function pedir_posicion
