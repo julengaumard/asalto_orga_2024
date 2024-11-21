@@ -287,6 +287,6 @@ evaluar_siguiente:
     call_function verificar_mov_oficial
     cmp rax, 1
     ; ↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TODO: Aca hay que comprobar si ese oficial tiene movimientos validos.
-    je seguir_comprobando ; Si al menos 1 tiene, ya podes jugar asi que saltamos al resto de comprobaciones.
+    je seguir_comprobando ; Si al menos 1 tiene, ya podes jugar asi que dejamos de buscar oficiales para chequear.
 
     jmp evaluar_siguiente
