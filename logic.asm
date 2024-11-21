@@ -204,6 +204,7 @@ movimiento_posible:
     ret
 
 captura_posible:
+    mov byte [hay_captura_posible], 0
     xor rdx, rdx
     mov dl, [r11]
     movsx rdx, dl
@@ -261,6 +262,7 @@ verificar_movimiento_soldado:
    
     cmp byte[es_movimiento_posible], 1
     jne soldado_sin_movimientos_validos         ; No hay movimientos posibles ya que el soldado se encuentra en el borde inferior o superior del tablero.
+    jmp continuar_verificacion_movimiento_soldado
 
 rotacion_90_270:
     ; Para rotaciones de 90 y 270 grados
@@ -270,6 +272,7 @@ rotacion_90_270:
     cmp byte[es_movimiento_posible], 1
     jne soldado_sin_movimientos_validos         ; No hay movimientos posibles ya que el soldado se encuentra en el borde inferior o superior del tablero.
 
+continuar_verificacion_movimiento_soldado:
     cmp r10b, [casilla_roja_1]
     je verificar_movimiento_soldado_costado     ; Verifica si el soldado se puede mover a los costados (solo en el caso de estar en una casilla roja)
     cmp r10b, [casilla_roja_2]
@@ -280,17 +283,20 @@ rotacion_90_270:
     je verificar_movimiento_soldado_costado
 
     mov r13, r12
-    add r13b, [direccion_posible_1]          
+    movsx rdx, byte[direccion_posible_1]
+    add r13, rdx     
     cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
 
     mov r13, r12
-    add r13b, [direccion_posible_2]                
+    movsx rdx, byte[direccion_posible_2]
+    add r13, rdx                
     cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
 
     mov r13, r12
-    add r13b, [direccion_posible_3]               
+    movsx rdx, byte[direccion_posible_2]
+    add r13, rdx
     cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
 
@@ -386,74 +392,74 @@ esta_casilla_roja_1_vertical:
 
 
 verificar_rotacion_tablero:
-    cmp byte[orientacion_tablero], 1            ; Tablero rotado 0 grados
+    cmp byte [orientacion_tablero], 1            ; Tablero rotado 0 grados
     jl error_orientacion_tablero
     je verificar_movimiento_soldado_0           ; El valor de la orientación del tablero es incorrecta
 
-    cmp byte[orientacion_tablero], 2            ; Tablero rotado 90 grados
+    cmp byte [orientacion_tablero], 2            ; Tablero rotado 90 grados
     je verificar_movimiento_soldado_90
 
-    cmp byte[orientacion_tablero], 3            ; Tablero rotado 180 grados
+    cmp byte [orientacion_tablero], 3            ; Tablero rotado 180 grados
     je verificar_movimiento_soldado_180
 
-    cmp byte[orientacion_tablero], 4            ; Tablero rotado 270 grados
+    cmp byte [orientacion_tablero], 4            ; Tablero rotado 270 grados
     je verificar_movimiento_soldado_270
     jg error_orientacion_tablero                ; El valor de la orientación del tablero es incorrecta
     ret
 
 verificar_movimiento_soldado_0:
-    mov byte[casilla_roja_1], 28
-    mov byte[casilla_roja_2], 29
-    mov byte[casilla_roja_3], 33
-    mov byte[casilla_roja_4], 34
-    mov byte[direccion_posible_1], 6
-    mov byte[direccion_posible_2], 7
-    mov byte[direccion_posible_3], 8
+    mov byte [casilla_roja_1], 28
+    mov byte [casilla_roja_2], 29
+    mov byte [casilla_roja_3], 33
+    mov byte [casilla_roja_4], 34
+    mov byte [direccion_posible_1], 6
+    mov byte [direccion_posible_2], 7
+    mov byte [direccion_posible_3], 8
     jmp direccion_posible_costado_horizontal
     ret
 
 verificar_movimiento_soldado_180:
-    mov byte[casilla_roja_1], 14
-    mov byte[casilla_roja_2], 15
-    mov byte[casilla_roja_3], 19
-    mov byte[casilla_roja_4], 20
-    mov byte[direccion_posible_1], -8
-    mov byte[direccion_posible_2], -7
-    mov byte[direccion_posible_3], -6
+    mov byte [casilla_roja_1], 14
+    mov byte [casilla_roja_2], 15
+    mov byte [casilla_roja_3], 19
+    mov byte [casilla_roja_4], 20
+    mov byte [direccion_posible_1], -8
+    mov byte [direccion_posible_2], -7
+    mov byte [direccion_posible_3], -6
     jmp direccion_posible_costado_horizontal
     ret
 
 direccion_posible_costado_horizontal:
-    mov byte[direccion_posible_costado_1], -1
-    mov byte[direccion_posible_costado_2], 1
+    mov byte [direccion_posible_costado_1], -1
+    mov byte [direccion_posible_costado_2], 1
     ret
 
 
 verificar_movimiento_soldado_90:
-    mov byte[casilla_roja_1], 4
-    mov byte[casilla_roja_2], 11
-    mov byte[casilla_roja_3], 39
-    mov byte[casilla_roja_4], 46
-    mov byte[direccion_posible_1], -6
-    mov byte[direccion_posible_2], 1
-    mov byte[direccion_posible_3], 8
+    mov byte [casilla_roja_1], 4
+    mov byte [casilla_roja_2], 11
+    mov byte [casilla_roja_3], 39
+    mov byte [casilla_roja_4], 46
+    mov byte [direccion_posible_1], -6
+    mov byte [direccion_posible_2], 1
+    mov byte [direccion_posible_3], 8
     jmp direccion_posible_costado_vertical
     ret
 
 verificar_movimiento_soldado_270:
-    mov byte[casilla_roja_1], 2
-    mov byte[casilla_roja_2], 9
-    mov byte[casilla_roja_3], 37
-    mov byte[casilla_roja_4], 44
-    mov byte[direccion_posible_1], -8
-    mov byte[direccion_posible_2], -1
-    mov byte[direccion_posible_3], 6
+    mov byte [casilla_roja_1], 2
+    mov byte [casilla_roja_2], 9
+    mov byte [casilla_roja_3], 37
+    mov byte [casilla_roja_4], 44
+    mov byte [direccion_posible_1], -8
+    mov byte [direccion_posible_2], -1
+    mov byte [direccion_posible_3], 6
     jmp direccion_posible_costado_vertical
     ret
 
 direccion_posible_costado_vertical:
-    mov byte[direccion_posible_costado_1], -7
-    mov byte[direccion_posible_costado_2], 7
+    mov byte [direccion_posible_costado_1], -7
+    mov byte [direccion_posible_costado_2], 7
     ret
 
 
@@ -720,7 +726,7 @@ comprobar_captura:
     ret
 
 eliminar_oficial:
-    mov byte[hay_captura_posible],0
+    mov byte[hay_captura_posible], 0
     mov r9, [ficha_a_mover]      
     sub r9, 1                    ; Ajustar la posición de la ficha (de 1 a 0-indexado)
     lea r8, [board + r9]         ; Apuntamos a la posición de la ficha original
