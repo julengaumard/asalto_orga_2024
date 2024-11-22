@@ -25,6 +25,8 @@ extern es_movimiento_valido
 extern hay_captura_posible
 extern es_captura
 extern comprobar_captura
+extern eliminar_oficial_mov
+extern oficial_captura
 
 %macro call_function 1
 sub     rsp,8
@@ -263,8 +265,6 @@ pedir_posicion:
     ret
 
 mover:
-    mov byte[es_captura],0
-    mov byte[hay_captura_posible],0
     mov r9, [posicion_destino]   ; Cargar la posición de destino
     sub r9, 1                    ; Ajustar a índice 0
     lea r8, [board + r9]         ; Apuntar a la nueva posición en el tablero
@@ -283,11 +283,27 @@ mover:
     sub r9, 1   
     lea r8, [board + r9]         ; Apuntamos nuevamente al tablero, ya que actualizamos r8
     mov al, byte [turnoActual]     ; Cargar la ficha a mover (X o O) en AL
-    mov byte [r8], al            ; Colocar el valor de AL en la nueva posición
+    mov byte [r8], al   
+
+    mov al, [ficha_a_mover]
+    cmp byte[oficial_captura], al
+    je chequear_captura
+
+    mov byte[es_captura],0
+    mov byte[hay_captura_posible],0
+        ; Colocar el valor de AL en la nueva posición
 ret
 
 
+chequear_captura:
+    cmp byte[hay_captura_posible],1
+    je continuar_chequeo_captura
+    ret
 
+continuar_chequeo_captura:
+    cmp byte[es_captura],0
+    je eliminar_oficial_mov
+    ret
 
 
 mov_valido:

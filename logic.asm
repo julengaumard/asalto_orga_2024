@@ -37,6 +37,7 @@ section .data
     global hay_captura_posible
     global es_captura
     global es_movimiento_posible
+    global oficial_captura 
     txtdestino db 'Ingrese la casilla de destino: ',0
     destino_invalido db  10, 'La posicion de destino no es valida',10, 'Ingrese nuevamente la ficha que quiere mover :',0
     mensaje_error_orientacion_tablero db 10, "La orientación del tablero no es válida.", 10, 0
@@ -77,6 +78,7 @@ global verificar_salto_y_eliminar_oficial
 global verificar_mov_oficial 
 global verificar_movimiento_soldado
 global comprobar_captura
+global eliminar_oficial_mov
 
 
 ; Si el movimiento es posible, establece true en es_movimiento_valido
@@ -729,10 +731,17 @@ comprobar_captura:
     ret
 
 eliminar_oficial:
-    mov byte[hay_captura_posible], 0
     mov r9, [oficial_captura]
     sub r9, 1                    ; Ajustar la posición de la ficha (de 1 a 0-indexado)
     lea r8, [board + r9]         ; Apuntamos a la posición de la ficha original
-    mov byte[r8], 95
+    mov byte[r8], 95   
     add byte[oficiales_eliminados],1
+    jmp mover
+    ret
+
+eliminar_oficial_mov:
+    mov r10, [posicion_destino]     ; Posición a la que se quiere mover
+    sub r10, 1
+    lea r11, [board + r10]         ; Apuntamos a la posición de la ficha a mover
+    mov byte[r11], 95
     ret
