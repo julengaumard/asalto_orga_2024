@@ -85,8 +85,7 @@ global eliminar_oficial_mov
 verificar_mov_oficial:
     mov byte[es_movimiento_valido], 0                   ; Establece que es_movimiento_valido es false
     lea r11, [vector_desplazamientos]                   ; Carga el puntero al primer elemento del vector_desplazamiento
-    mov cx, 15                                          ; Espacio para hacer todos los chequeos en 8 direcciones  
-    xor r14, r14                                        ; Inicializa contador de iteraciones
+    mov cx, 8                                           ; Espacio para hacer todos los chequeos en 8 direcciones  
 
 ; Verifica si los alrededores del oficial están libres o si hay un soldado y se puede capturar
 loop_verificar_mov_oficial:
@@ -111,16 +110,11 @@ loop_verificar_mov_oficial:
     mov al, [ficha_soldado]
     cmp byte [r13], al                                  ; Verifica si hay un soldado en la posición y si se puede capturar
     je captura_posible                                  ; Chequea 8 veces (1 en cada direccion) antes de saltar a la siguiente iteración
-    cmp r14, 8
-    jl continuar_verificacion_mov_oficial
-    cmp r14, 8
-    je reiniciar_vector
-    cmp r14, 8
-    jg chequear_vacio                                   ; Verifica si hay un espacio sin ocupar
+
+    jmp chequear_vacio                                   ; Verifica si hay un espacio sin ocupar
 
 continuar_verificacion_mov_oficial:
     inc r11                                             ; Avanza al siguiente desplazamiento
-    inc r14                                             
     loop loop_verificar_mov_oficial                     ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
 
     ; Iteró con todos los desplazamientos y no tiene movimientos válidos
@@ -130,9 +124,12 @@ continuar_verificacion_mov_oficial:
     
 chequear_vacio: 
     cmp byte [r13], 95                                  ; Verifica si hay un espacio libre
-    je finalizar_verificacion_mov_oficial               ; Un solo movimiento válido es suficiente por lo tanto termina la subrutina
-    cmp r14, 15
-    jl continuar_verificacion_mov_oficial               ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
+    je espacio_libre                                    ; Un solo movimiento válido es suficiente para determinar si hay movimientos válidos pero hay que chequear si hay capturas posibles
+    jmp continuar_verificacion_mov_oficial              ; Si no encontró un movimiento válido, intenta nuevamente pero con otro desplazamiento
+
+espacio_libre:
+    call_function movimiento_posible
+    jmp continuar_verificacion_mov_oficial
 
 finalizar_verificacion_mov_oficial:
     call_function movimiento_posible
@@ -300,7 +297,7 @@ continuar_verificacion_movimiento_soldado:
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
 
     mov r13, r12
-    movsx rdx, byte[direccion_posible_2]
+    movsx rdx, byte[direccion_posible_3]
     add r13, rdx
     cmp byte[r13], 95                           ; Verifica si la posición actual del soldado más el desplazamiento es válida
     je movimiento_soldado_posible               ; Con un solo movimiento válido me basta para terminar la subrutina
