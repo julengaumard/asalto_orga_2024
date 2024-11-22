@@ -66,6 +66,7 @@ section .bss
     direccion_posible_3     resb    1
     direccion_posible_costado_1     resb    1
     direccion_posible_costado_2     resb    1
+    oficial_captura resq 1
 
    
 
@@ -237,6 +238,8 @@ captura_posible:
 
     ; Si llega hasta este punto, la captura es posible y es un movimiento válido, por lo cual termina la verificación
     mov byte[hay_captura_posible], 1
+    mov al, [ficha_a_mover]
+    mov [oficial_captura], al
     jmp finalizar_verificacion_mov_oficial
 
 
@@ -727,7 +730,7 @@ comprobar_captura:
 
 eliminar_oficial:
     mov byte[hay_captura_posible], 0
-    mov r9, [ficha_a_mover]      
+    mov r9, [oficial_captura]
     sub r9, 1                    ; Ajustar la posición de la ficha (de 1 a 0-indexado)
     lea r8, [board + r9]         ; Apuntamos a la posición de la ficha original
     mov byte[r8], 95
