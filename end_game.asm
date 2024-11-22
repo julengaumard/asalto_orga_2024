@@ -94,7 +94,7 @@ juego_finalizado:
     jne no_modificar_motivo
 
     mov rdx, motivo_sin_oficiales
-    jne no_modificar_motivo
+    je no_modificar_motivo
 
 sin_movimientos:
     mov rsi, [ficha_soldado]
@@ -257,8 +257,7 @@ orientacion_270:
 
 
 comprobar_sin_movimientos:
-    mov qword[contador], 0
-    mov byte[oficiales_sin_movimiento], 0
+    mov qword [contador], 0
 
     
 evaluar_siguiente:
