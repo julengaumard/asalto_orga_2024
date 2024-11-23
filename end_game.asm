@@ -17,7 +17,7 @@ extern oficiales_eliminados
 extern verificar_mov_oficial
 extern ficha_a_mover
 extern es_movimiento_posible
-
+; extern hay_captura_posible (Por si al final solo habia que eliminar al oficial que se mueve)
 %macro call_function 1
 sub     rsp,8
 call    %1
@@ -45,6 +45,8 @@ section .data
     contador                dq 1
     hay_movimientos         dq 0
     oficiales_sin_movimiento db 0 
+    oficial_con_movimiento  db 0
+    oficiales_chequeados db 0
 
 section .text
     global comprobar_fin_juego
@@ -275,10 +277,35 @@ evaluar_siguiente:
     cmp al, byte [ficha_oficial]   
     jne evaluar_siguiente 
 
+    add byte[oficiales_chequeados], 1
     inc r9
     mov [ficha_a_mover], r9
     call_function verificar_mov_oficial
     cmp rax, 1
+;   mov byte[hay_captura_posible], 0
+    je oficial_disponible
+    
+    cmp byte[oficial_con_movimiento], 2
+    jne comprobar_num_oficiales ; Si al menos 1 tiene, ya podes jugar asi que dejamos de buscar oficiales para chequear.
 
-    je seguir_comprobando ; Si al menos 1 tiene, ya podes jugar asi que dejamos de buscar oficiales para chequear.
-    jmp evaluar_siguiente 
+
+oficial_disponible:
+    add byte[oficial_con_movimiento], 1
+    
+
+comprobar_num_oficiales:
+    cmp byte[oficiales_eliminados], 1
+    je seguir_comprobando
+    jne comprobar_oficial_restante
+
+
+comprobar_oficial_restante:
+    cmp byte[oficiales_chequeados], 2
+    jne evaluar_siguiente
+    je seguir_comprobando
+
+
+
+
+
+
