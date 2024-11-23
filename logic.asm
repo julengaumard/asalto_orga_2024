@@ -56,6 +56,7 @@ section .data
     oficial_diagonalsupder dq 0
     oficial_diagonalinfizq dq 0
     oficial_diagonalinfder dq 0
+ 
 
 section .bss
     casilla_roja_1  resb    1
@@ -490,9 +491,9 @@ validar_movimiento_oficial:
     cmp r12, 7
     je o_arriba
     cmp r12, -1
-    je o_izquierda
-    cmp r12, 1
     je o_derecha
+    cmp r12, 1
+    je o_izquierda
     cmp r12, -8                    
     je o_diagonal_infder
     cmp r12, -6                    
@@ -542,7 +543,24 @@ verificar_salto:
     add qword [capturas], 1         ; Incrementa el contador de capturas
     mov byte [board + r13], 95      ; Elimina el soldado en la posición intermedia, colocando espacio vacío
     mov byte[es_captura], 1      
-    jmp mov_valido
+
+    cmp r12, -14                   ; Arriba (2 casillas)
+    je o_abajo
+    cmp r12, 14                    ; Abajo (2 casillas)
+    je o_arriba
+    cmp r12, -2                    ; Izquierda (2 casillas)
+    je o_derecha
+    cmp r12, 2                     ; Derecha (2 casillas)
+    je o_izquierda
+    cmp r12, -16                   ; Diagonal superior izquierda (2 casillas)
+    je o_diagonal_infder
+    cmp r12, -12                   ; Diagonal superior derecha (2 casillas)
+    je o_diagonal_infizq
+    cmp r12, 12                    ; Diagonal inferior izquierda (2 casillas)
+    je o_diagonal_supder
+    cmp r12, 16                    ; Diagonal inferior derecha (2 casillas)
+    je o_diagonal_supizq
+
 
 
 o_abajo:
