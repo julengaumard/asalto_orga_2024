@@ -205,6 +205,7 @@ movimiento_posible:
     ret
 
 captura_posible:
+    mov byte [hay_captura_posible], 0
     xor rdx, rdx
     mov dl, [r11]
     movsx rdx, dl
