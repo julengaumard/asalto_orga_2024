@@ -53,7 +53,6 @@ personalizar_fichas:
     cmp al, '1'
     jl exit
     mov [respuesta_personalizar], al
-    ; Asegúrate de que la entrada se haya leído correctamente
     mov al, [respuesta_personalizar]
     cmp al, 's'
     jne no_personalizar
@@ -101,41 +100,28 @@ clear_loop:
     ret
 
 reemplazar_simbolos:
-    ; Llamamos a las funciones específicas para reemplazar soldados y oficiales
-    call reemplazar_soldados
-    call reemplazar_oficiales
-    ret
-
-reemplazar_soldados:
     lea rdi, [board]         ; Cargar la dirección de la matriz en RDI
     mov rcx, 49              ; Número de elementos (7x7 = 49)
-    mov al, [ficha_soldado]
-; Cargar ficha_soldado en AL
+    mov al, [ficha_soldado]  ; Cargar ficha_soldado en AL
+    mov bl, [ficha_oficial]  ; Cargar ficha_oficial en BL
 
-modificar_loop_soldados:
-    cmp byte [rdi], 88      ; Comparar si es 'X'
-    jne siguiente_elemento_soldados
+modificar_loop:
+    cmp byte [rdi], 88       ; Comparar si es 'X'
+    je reemplazar_soldado
+    cmp byte [rdi], 79       ; Comparar si es 'O'
+    je reemplazar_oficial
+    jmp siguiente_elemento   ; Si no es ni 'X' ni 'O', pasar al siguiente elemento
+
+reemplazar_soldado:
     mov byte [rdi], al       ; Reemplazar en la matriz
+    jmp siguiente_elemento
 
-siguiente_elemento_soldados:
+reemplazar_oficial:
+    mov byte [rdi], bl       ; Reemplazar en la matriz
+
+siguiente_elemento:
     inc rdi                  ; Mover al siguiente elemento de la matriz
-    loop modificar_loop_soldados       ; Si no hemos recorrido todos los elementos, continuar el loop
-
-    ret
-
-reemplazar_oficiales:
-    lea rdi, [board]         ; Cargar la dirección de la matriz en RDI
-    mov rcx, 49              ; Número de elementos (7x7 = 49)
-    mov al, [ficha_oficial]  ; Cargar ficha_oficial en AL
-
-modificar_loop_oficiales:
-    cmp byte [rdi], 79      ; Comparar si es 'O'
-    jne siguiente_elemento_oficiales
-    mov byte [rdi], al       ; Reemplazar en la matriz
-
-siguiente_elemento_oficiales:
-    inc rdi                  ; Mover al siguiente elemento de la matriz
-    loop modificar_loop_oficiales       ; Si no hemos recorrido todos los elementos, continuar el loop
+    loop modificar_loop      ; Si no recorrio todos los elementos, continuar el loop
 
     ret
 
