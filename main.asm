@@ -8,7 +8,7 @@ extern print_menu
 extern print_tablero_new
 extern save_game
 extern load_game
-extern verificar_mov_oficial 
+extern verificar_movimientos_oficial 
 extern validar_movimiento_oficial
 extern validar_movimiento_soldado
 extern verificar_salto_y_eliminar_oficial
@@ -18,7 +18,7 @@ extern clear_screen
 extern personalizar_fichas
 extern reemplazar_simbolos
 extern getchar
-extern verificar_movimiento_soldado
+extern verificar_movimientos_soldado
 extern clear_input_buffer
 extern quien_comienza
 extern es_movimiento_valido
@@ -199,7 +199,7 @@ ingrese_nuevamente:
     mov al, [ficha_oficial]
     cmp byte[turnoActual], al               ; Verifica que sea un oficial
     jne no_es_oficial
-    call_function verificar_mov_oficial     ; Verifica si hay movimientos válidos para el oficial
+    call_function verificar_movimientos_oficial     ; Verifica si hay movimientos válidos para el oficial
 
     cmp byte[es_movimiento_valido], 1
     je cambiar_oficial
@@ -211,7 +211,7 @@ mensaje_oficial_sin_movimientos:
     jmp mensaje_solicitar_movimiento
 
 no_es_oficial:
-    call_function verificar_movimiento_soldado
+    call_function verificar_movimientos_soldado
 
     cmp byte[es_movimiento_valido], 1
     je cambiar_soldado
