@@ -14,7 +14,7 @@ extern oficial_diagonalinfizq
 extern oficial_diagonalinfder
 extern orientacion_tablero
 extern oficiales_eliminados
-extern verificar_mov_oficial
+extern verificar_movimientos_oficial
 extern ficha_a_mover
 extern es_movimiento_posible
 ; extern hay_captura_posible (Por si al final solo habia que eliminar al oficial que se mueve)
@@ -285,7 +285,7 @@ evaluar_siguiente:
     add byte[oficiales_chequeados], 1
     inc r9
     mov [ficha_a_mover], r9
-    call_function verificar_mov_oficial
+    call_function verificar_movimientos_oficial
     cmp rax, 1
 ;   mov byte[hay_captura_posible], 0
     je oficial_disponible
