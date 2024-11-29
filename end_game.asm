@@ -307,7 +307,17 @@ comprobar_num_oficiales:
 comprobar_oficial_restante:
     cmp byte[oficiales_chequeados], 2
     jne evaluar_siguiente
-    je seguir_comprobando
+    je oficiales_con_movimiento
+
+oficiales_con_movimiento:
+    mov dl, [oficial_con_movimiento]
+    cmp dl, 0                          ; Si hay un oficial con movimiento, sigue el flujo del programa. Si no hay, empieza la rutina de juego_finalizado
+    jg seguir_comprobando
+    jle oficiales_sin_movimientos
+
+oficiales_sin_movimientos:
+    mov byte [hay_movimientos], 0
+    jmp juego_finalizado
 
 
 
