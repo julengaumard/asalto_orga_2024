@@ -213,6 +213,8 @@ imprimir_espacio_vacio:
 
 seleccionar_orientacion:
     printCadena textoOrientacion
+
+continuar_seleccion_orientacion:
     mov rdi, inputFormat
     mov rsi, orientacion_tablero
     sub     rsp,8
@@ -223,9 +225,9 @@ seleccionar_orientacion:
     cmp     byte[orientacion_tablero], 1
     jl      exit
     cmp     byte[orientacion_tablero], 4
-    jg      error
+    jg      error_orientacion
     cmp     byte[orientacion_tablero], 1
-    jl      error
+    jl      error_orientacion
     mov ah, [orientacion_tablero]
     ret
 
@@ -236,3 +238,7 @@ clear_screen:
     add     rsp,8
     ret
 
+error_orientacion:
+    printCadena emsg
+    call    clear_input_buffer
+    jmp     continuar_seleccion_orientacion

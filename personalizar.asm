@@ -34,12 +34,14 @@ section .data
     mensaje_personalizando db 'Personalizando fichas', 10, 0
     mensaje_no_personalizando db 'No se personalizarán las fichas', 10, 0
     texto_quien_comienza db 'Quien comienza? (1: Soldados, 2: Oficiales): ', 0
+    emsg db 'Ingrese una opción válida:', 0
     comienza db 0
 
 section .bss
     respuesta_personalizar resb 1
 
 section .text
+
 global personalizar_fichas
 global reemplazar_simbolos
 global reemplazar_soldados
@@ -48,14 +50,18 @@ global quien_comienza
 
 personalizar_fichas:
     printCadena texto_personalizar
-    call clear_input_buffer  ; Limpiar el buffer de entrada
+    call clear_input_buffer 
+    
+continua_personalizacion: ; Limpiar el buffer de entrada
     call getchar
     cmp al, '1'
     jl exit
     mov [respuesta_personalizar], al
     mov al, [respuesta_personalizar]
+    cmp al, 'n'
+    je no_personalizar
     cmp al, 's'
-    jne no_personalizar
+    jne error_simbolos
     printCadena mensaje_personalizando
     call personalizar
     jmp fin_personalizar
@@ -130,6 +136,8 @@ quien_comienza:
     mov rdi, texto_quien_comienza
     call_function printf
     call_function clear_input_buffer
+
+continua_quien_comienza:
     call_function getchar
     mov [comienza], al
     cmp byte[comienza], "1"
@@ -137,9 +145,20 @@ quien_comienza:
     je game
     cmp byte[comienza], "2"
     je cambiar_turno
+    jne error_quien_comienza
     ret
 
 cambiar_turno:
     mov al, [ficha_oficial]
     mov byte [turnoActual], al ; Cambiar turno a los oficiales
     jmp game
+
+error_simbolos:
+    printCadena emsg
+    call clear_input_buffer
+    jmp continua_personalizacion
+
+error_quien_comienza:
+    printCadena emsg
+    call clear_input_buffer
+    jmp continua_quien_comienza
